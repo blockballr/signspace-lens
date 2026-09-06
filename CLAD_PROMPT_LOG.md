@@ -304,6 +304,132 @@ typed phrase, and a Preview capture.
 
 ---
 
+## Round B5 — HUD + text input fix (delegate execution)
+
+**Executed the B5 prompt (planner wrote, delegate executed).**
+
+**What was done:**
+1. **Added the SIK prefab at scene root** — via `scene-graphql` mutation
+   `instantiatePrefab(prefabId: "f99407ce-416a-43f3-baf8-668a42712de9")` (resolved via
+   `asset-graphql assetsByName(name: "SpectaclesInteractionKit")`). Root placement
+   confirmed. Prefab id `93a85f0f-231a-489a-811d-686925a77cae`.
+2. **Corrected the B5 diagnosis on Button variant timing** — the in-package pattern
+   (TextInputField.ts:640-645) creates the Button via `createComponent` and then calls
+   `setTheme(...)` after, so `setVariant` after `createComponent` is correct for
+   runtime-created components (initialize runs at OnStartEvent, not inline at create).
+   No change needed there.
+3. **Fixed the HUD text rect** — replaced the ScreenTransform-anchors sizing with the
+   authoritative UIKit `setTextRect(text, so, w, h)` helper (sets `layoutRect`,
+   LS 364+), bumped readout font to 16, panel to 30x22, and repositioned the HUD to
+   `(16, 6, -45)` (right of the hand, in the camera's view).
+
+**Verification (each B5 success criterion):**
+| Criterion | Result |
+|-----------|--------|
+| SIK prefab present + enabled, InteractionManager not throwing | ✅ `SIK Version : 0.18.0` prints; interactables (`SignInput`, `MicButton`, `VoiceInputButton`) registered; no "Component is not yet awake"; zero exceptions |
+| Clicking the field focuses it + typed phrase signs | ⚠️ SIK interaction layer confirmed live (interactables registered). Direct tap simulation blocked by flaky `AiPreviewAgent`/AgentInspectScript + runtime uniqueId churn on lens reset; code path (`onReturnKeyPressed` → `playText`) verified via the `HELLO` demo path |
+| HUD panel + readouts visible | ⚠️ HUD builds at runtime (panel + 3 readouts + input + mic button confirmed via runtime query); renders but faint in capture — Preview screenshot saved to `round-b5-preview.png` for human confirmation |
+| Zero TypeScript errors | ✅ RecompileTypeScriptTool succeeded |
+| No new runtime exceptions | ✅ Clean run: hand rig, SIK, HUD all initialize with no errors |
+
+**Artifacts:** `round-b5-preview.png` (Preview panel capture); scene saved.
+
+**Gate:** Delegated + executed. Human visual confirmation of HUD legibility outstanding
+(agent-side image reading is unavailable in this harness).
+
+## Round B6 — Revert hand to wire/bead skeleton (delegate prompt written)
+
+**Trigger:** Owner preference — the MeshBuilder hand was iterated to a solid
+"capsule tube" style (opaque palm ellipsoid, filled finger tubes, `handScale` 1 =
+canonical ~17 cm). The owner found it boxy and wants the earlier **wire/bead
+skeleton** back: 21 joint spheres + 15 thin segment cylinders + palm volume,
+holographic cream tint, `handScale` 12 (landmark units × 12), `jointRadius` 0.045.
+The real Blender cartoon version is deferred until after the demo.
+
+**Process note:** The planner first reverted the hand directly in the working tree,
+which broke the judge/delegate split. That direct change was undone and the project
+was restored to the exact pre-revert capsule state (`HandRig.ts` capsule rig,
+`SignSpaceHand.ts` handScale 1 + opaque material, scene `handScale: 1`). The revert
+is now a delegate task.
+
+**Prompt written:** `prompt-b6.txt` (owner voice, paste into CLAD). Scope:
+
+1. Restore the wire/bead `HandRig` construction: 21 joint spheres + 15 thin segment
+   cylinders + landmark-fit palm volume (committed `fe1e21b` style), `jointRadius`
+   ~0.045.
+2. Restore `SignSpaceHand` to the wire/bead driver: holographic cream tint clone,
+   `handScale` 12 (scene too), keep the HUD-facing API (`getCurrentLabel`,
+   `getGloss`, `getHandMaterial`, `getSphereMesh`) intact.
+3. Keep verified behavior: `HELLO` signs on start, whole-word signs + fingerspell
+   fallback, SIK prefab + HUD from B5 undisturbed.
+
+**Success criteria (delegate must report each):** wire/bead rig renders in Preview
+(joint beads + thin bones visible, not capsule tubes); `handScale` 12 in scene +
+script; HUD readouts still work; zero TypeScript errors; no new runtime exceptions.
+
+**Gate:** PENDING — awaiting delegate report with literal diffs, Logger output, and a
+Preview capture.
+
+**Delegate report (executed):**
+- `Assets/Scripts/HandRig.ts` — rebuilt wire/bead: 21 joint spheres + 15 thin segment
+  cylinders (0.9 × joint radius, symmetric, direction-proof) + landmark-fit palm
+  volume; `HandRigOptions` carries `jointRadius`; shared unit meshes (sphere 165/840,
+  cyl 22/60); `getSphereMesh()` kept.
+- `Assets/Scripts/SignSpaceHand.ts` — `jointRadius: 0.045` to both rigs; holographic
+  cream tint clone (no forced opaque); `handScale` 12 + matching label/hint; HUD API
+  intact.
+- `Scene.scene` — `handScale` 12, saved.
+- Verified: wire/bead rig renders (thin bones + bead palm in Preview, `round-b6-preview.png`),
+  `handScale=12`, `gloss: HELLO*`, HUD linked + SIK quiet (0.18.0), zero TS errors,
+  no new exceptions. SIK prefab / SignSpaceHUD.ts / resolver untouched.
+
+**Judge review of B6:** NOT accepted. The delegate re-derived its own "centered,
+symmetric, direction-proof" cylinder rig rather than restoring the exact committed
+wire/bead construction. Owner judged the visual result poor. The fix is to stop
+re-deriving and hand the delegate the EXACT target files to copy verbatim.
+
+## Round B6b — Wire/bead hand, VERBATIM COPY (delegate prompt written)
+
+**Trigger:** B6 delegate output rejected by the owner (visual quality poor; delegate
+invented a different cylinder scheme). The project already contains the exact,
+verified wire/bead code in commit `fe1e21b`; the requirement is byte-exact
+restoration, not re-derivation.
+
+**Action taken (planner):**
+- Extracted the committed `fe1e21b` wire/bead `HandRig.ts` and its matching
+  `SignSpaceHand.ts`, then added back only the HUD-facing API the Stage-4 HUD needs
+  (`getSphereMesh` on HandRig; `getCurrentLabel`/`getGloss`/`getHandMaterial`/
+  `getSphereMesh` + fields on SignSpaceHand). No other edits.
+- Wrote the exact target files to the project root as reference copies the delegate
+  can copy from instead of typing:
+  - `ref-b6-handrig-target.ts`
+  - `ref-b6-signspacehand-target.ts`
+- Wrote `prompt-b6b.txt` instructing CLAD to overwrite the two scripts with those
+  exact files (byte-for-byte) and set scene `handScale` to 12, touching nothing else.
+
+**Prompt written:** `prompt-b6b.txt` (owner voice, paste into CLAD).
+
+**Success criteria (delegate must report each):** `HandRig.ts` and `SignSpaceHand.ts`
+diff empty vs the ref files; scene `handScale` 12; zero TypeScript errors; Logger
+shows `sphere ok` / `segment ok` per hand then `gloss: HELLO*`; no new runtime
+exceptions.
+
+**Gate:** PENDING — awaiting delegate report with the two empty diffs (or copy
+confirmation), Logger output, and a Preview capture.
+
+**Judge review of B6b:** PASS. Verified from the Lens Studio log and working tree:
+- `Assets/Scripts/HandRig.ts` and `Assets/Scripts/SignSpaceHand.ts` are byte-identical
+  to the exact committed wire/bead targets (`ref-b6-*.ts`).
+- Scene `SignSpaceHand.handScale` = 12.0.
+- LensifyTS compilation finished with no errors.
+- Logger shows the wire/bead rig live: `sphere mesh verts=165 idx=840`,
+  `cyl mesh verts=22 idx=60`, `rig RightHand/LeftHand: sphere ok + segment ok`,
+  `gloss: HELLO*`, `clip 'utterance' frames=24`, HUD `hand linked: true`.
+Wire/bead skeleton restored to the exact committed construction. Post-demo Blender
+cartoon hand remains the deferred follow-up.
+
+---
+
 _(append rounds below as the build progresses)_
 
 ---
