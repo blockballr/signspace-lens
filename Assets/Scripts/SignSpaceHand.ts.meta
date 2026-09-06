@@ -1,0 +1,52 @@
+- !<AssetImportMetadata/e1abd85e-158e-4b99-b0c0-953f0f94cef5>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> dbdc726a-844a-4fe0-a0ed-76cfb895880a
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> dbdc726a-844a-4fe0-a0ed-76cfb895880a
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 1b49b211-6c77-4264-bea6-7a988bbc8019
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/1b49b211-6c77-4264-bea6-7a988bbc8019>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 537715f1-fe36-4955-952f-7febe9a5e753
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    handScale: false
+    material: false
+    spellText: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - material: !<reference.Material> 00000000-0000-0000-0000-000000000000
+      handScale: !<float> 12.000000
+      spellText: HELLO
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @input Asset.Material material {"label":"Hand Material", "hint":"Unlit material used for the whole mannequin hand."}'
+    - '// @input float handScale = 12 {"label":"Hand Scale (cm)", "hint":"Landmark units multiplied by this; ~12 cm gives a natural hand size."}'
+    - '// @input string spellText = "HELLO" {"label":"Spell Text", "hint":"Word to fingerspell on start, e.g. HELLO"}'
