@@ -1,0 +1,71 @@
+# Round B12 — Redesign HUD to match the ported web version
+
+Owner voice. Run this in CLAD, then report back with evidence.
+
+## Context
+
+The current Lens HUD is a world-space panel that looks wrong: its background is a
+scaled sphere mesh (a big curved brown blob), and the layout is a rough stack of
+readouts + a text field + mic button. I want it redesigned to match the ported web
+prototype's clean arrangement (see `index.html` in the `signspace` repo for the
+reference). The web version is a dark glass panel, top-left, with a specific,
+legible order.
+
+## Reference arrangement (from index.html)
+
+Top-left panel, in this order:
+
+1. Small uppercase tag + title ("HandGloss").
+2. One-line description: known words are signed (green), anything else fingerspelled
+   (amber).
+3. `Listen` mic button (row).
+4. Text input (`type words…`) + `Sign` button side by side (row).
+5. Status line (e.g. "ready").
+6. `heard` label + heard value (blue, bold).
+7. `gloss engine` label + three mode buttons: Passthrough / Rules / Gemini.
+8. `ASL gloss` line (green).
+9. Tokenized gloss: green tokens = whole-word sign, amber tokens = fingerspell.
+10. Small grey note.
+Plus a large amber letter cue bottom-right (the current letter being signed).
+
+## What I want
+
+Redesign `Assets/Scripts/SignSpaceHUD.ts` to reproduce that arrangement in the
+world-space HUD as closely as the UI Kit allows:
+
+1. **Fix the panel.** Replace the scaled-sphere background (the brown blob) with a
+   proper flat panel — either a working UI Kit `RoundedRectangle` or a correctly
+   sized flat quad — with a dark translucent "glass" look (dark bg, subtle border,
+   rounded corners), sized to the content.
+2. **Reproduce the order.** Title, description, mic button, text input + sign button,
+   status, heard (blue), gloss-engine mode buttons (Passthrough / Rules / Gemini),
+   ASL gloss (green), tokenized gloss (green sign / amber spell), note.
+3. **Wire the pieces.** The mic button toggles ASR (existing). The text input +
+   sign button drive `playText` (existing path). The three mode buttons select the
+   gloss-engine mode (the resolver's passthrough / rules / gemini modes — expose them
+   if they exist; if only one mode is wired in the Lens core, add the mode buttons
+   that map to what is actually implemented and note any gap).
+4. **Add the letter cue.** A large amber letter readout (bottom area) showing the
+   current letter/word being signed, driven by `getCurrentLabel()`.
+5. **Keep the vocabulary buttons from B11** (if already added) and the share button
+   from B8 (if already added) in the layout — do not drop them; fold them into the
+   new arrangement cleanly.
+6. **Keep the verified core untouched:** wire/bead hand, resolver/vocabulary, SIK
+   prefab, typed-input + `testPhrase` loop.
+
+## Success criteria (report each)
+
+- The panel is a clean flat glass-style panel (no sphere blob), sized to content.
+- The HUD reproduces the web order: title → description → mic → input+sign →
+  status → heard → modes → ASL gloss → gloss tokens → note.
+- Letter cue renders (large amber) and updates from `getCurrentLabel()`.
+- Mic, input, sign, mode buttons, vocab buttons (B11), share (B8) all still function.
+- Zero TypeScript errors; no new runtime exceptions (list any warnings).
+
+## Report back
+
+- Literal file paths changed and the actual diffs.
+- How you implemented the panel (RoundedRectangle vs. quad) and the sizing.
+- Which gloss-engine modes are actually wired vs. noted as gaps.
+- A screenshot or capture path of the new HUD.
+- Compile/verify command run and its output.

@@ -470,6 +470,210 @@ Logger output, Preview capture, and any `SignSpaceHUD.ts` diff.
   tap. Honest gap documented, on-device path intact.
 - Wire/bead hand rendered in capture; SIK prefab untouched.
 
+## Round B8 — Add Share: in-app capture + gloss export (delegate prompt written)
+
+**Trigger:** Owner wants a share capability for the "Create" theme, decided as an
+in-app capture + gloss export (no OS share-sheet / Snapchat / Drive dependency), so
+it is verifiable in Desktop Preview and runs the same path on device.
+
+**Scope decision (owner):** A Share button in the HUD that (a) captures a still image
+of the signed hand via the authoritative screenshot/frame-readback API, and
+(b) emits the current gloss string (`HELLO* ZEBRA+` style from `getGloss()`) to the
+Logger and where cleanly available for copy. Verified core (wire/bead hand, resolver,
+SIK prefab, typed-input loop) must remain untouched.
+
+**Prompt written:** `prompt-b8.txt` (owner voice, paste into CLAD). Scope:
+1. Add a UI Kit Share button beside the mic button (theme SnapOS3, secondary, round).
+2. On trigger, capture the signed hand (delegate picks the correct capture API) and
+   confirm a saved image file in Desktop Preview.
+3. Emit the gloss string on Share (`[SignSpaceHUD] SHARE gloss: <...>`).
+4. Retest the existing typed-input loop after the change.
+
+**Success criteria (delegate must report each):** Share button renders + registers as
+an interactable; pressing Share yields a valid captured hand image (path reported);
+gloss emitted on Share; typed-input loop still works; zero TS errors; no new runtime
+exceptions.
+
+**Gate:** PENDING — awaiting delegate report with diffs, chosen capture API + saved
+image path, `SHARE gloss:` Logger line, HUD capture, and compile output.
+
+**Post-submission milestone (parked, NOT this deadline):** pushing the Share capture
+to a real destination (Snapchat / Drive share-sheet). Requires a Spectacles device to
+verify real share-to-Snap; folded into the post-demo bench alongside the Blender
+cartoon hand.
+
+## Round B9 — Investigate Desktop Preview keyboard input path (delegate prompt written)
+
+**Trigger:** Owner flagged that there is no visible, working place to type in the
+Desktop Preview — the HUD creates a `TextInputField` (`SignInput`) but the system
+keyboard does not appear and keystrokes do not register in Preview (B7 had to inject
+`testPhrase` instead). Before choosing clickable vocabulary buttons vs. a live text
+field, the owner wants the delegate to investigate what the Preview input harness
+actually supports.
+
+**Prompt written:** `prompt-b9.txt` (owner voice, paste into CLAD). Scope: research
+only, no build changes. Determine (1) whether Desktop Preview can capture real
+keyboard into a TextInputField (TextInputSystem / keyboard module / any raw path),
+(2) confirm on-device typing works via the system keyboard with source, (3) recommend
+the best demoable input path with the exact API to use.
+
+**Success criteria (delegate must report each):** clear Yes/No verdict on Preview
+keyboard capture with evidence; on-device typing confirmation with source; a
+recommendation with the concrete API. No build modifications, no commits.
+
+**Gate:** PENDING — awaiting delegate verdict and recommendation.
+
+**Delegate report (executed, research only):** Round B9 complete — VERDICT: Desktop
+Preview does NOT capture real keyboard input.
+
+- **Preview = No.** SPECS-27 Preview does not render the AR keyboard, so keystrokes
+  don't register into a TextInputField. Evidence: `specs-keyboard/SKILL.md:16`
+  ("The AR Keyboard does not appear in Lens Studio Preview with SPECS 27
+  simulation..."). The raw path `global.textInputSystem.requestKeyboard(...)`
+  (StudioLib.d.ts:13806) "Requests the client to pop up the keyboard" — the client is
+  the SnapOS host, and the AR keyboard is a SnapOS wearable feature the desktop SPECS-27
+  sim does not render. `TextInputSystem.updateText()` is marked `@snapOS` (device-only,
+  StudioLib.d.ts:30896). No keyboard-forwarding MCP tool; PreviewInteractTool only
+  simulates hand gestures.
+- **On-device = Yes.** Tapping a TextInputField summons the AR keyboard. UIKit wires
+  this: TextInputField focus → SystemKeyboardModule.requestKeyboard()
+  (BaseTextInputComponent.ts:625) → global.textInputSystem.requestKeyboard()
+  (SystemKeyboardModule.ts:307). Works on SnapOS 5.060+ / LS 5.7+.
+- **Recommendation:** clickable vocabulary buttons (preview + device reliable) —
+  same UIKit Button pattern as mic/share, a grid of VOCAB words calling
+  `hand.playText(word)`. Keep the on-device TextInputField and inspector `testPhrase`
+  as fallbacks. `requestKeyboard` testable in Preview only by switching off SPECS-27
+  device sim.
+
+**Judge review of B9:** PASS. Verdict is well-evidenced and confirms the earlier
+working assumption. Action: add clickable vocabulary buttons (Round B11); keep
+TextInputField for on-device and `testPhrase` as preview fallback. Proceeding to B8
+(share) and B10 (backdrop).
+
+## Round B11 — Clickable vocabulary buttons (delegate prompt written)
+
+**Trigger:** B9 verdict (Preview can't capture typing) means the demoable input must
+not depend on the keyboard. Per the B9 recommendation, add clickable vocabulary
+buttons — same UIKit Button pattern as mic/share, calling `hand.playText(word)` —
+so input works identically in Preview and on device. TextInputField (device) and
+`testPhrase` (preview fallback) stay as fallbacks.
+
+**Prompt written:** `prompt-b11.txt` (owner voice, paste into CLAD). Scope: a small
+grid of VOCAB word buttons (whole-word signs, e.g. HELLO / THANK YOU / I LOVE YOU /
+MORE / WATER), laid out without overlapping existing HUD controls, driving
+`playText(word)` on trigger; keep typed-input + `testPhrase` working; core untouched.
+
+**Success criteria (delegate must report each):** grid renders + registers; clicking a
+button signs that word (gloss line reported); typed-input + `testPhrase` still work;
+no overlap; zero TS errors; no new runtime exceptions.
+
+**Gate:** PENDING — awaiting delegate report with diffs, chosen words + resolution,
+clicked-button Logger output, HUD capture, and compile output.
+
+## Round B12 — Redesign HUD to match the ported web version (delegate prompt written)
+
+**Trigger:** Owner wants the HUD redesigned to match the clean arrangement of the
+ported web prototype (`signspace/index.html`) instead of the rough stack behind the
+brown sphere-blob panel. The brown object at the top of the Preview was confirmed to
+be the HUD panel built from a scaled sphere mesh (SignSpaceHUD.ts buildPanel).
+
+**Reference (web HandGloss):** dark glass panel, top-left: tag+title → description →
+Listen mic → text input + Sign → status → heard (blue) → gloss-engine modes
+(Passthrough/Rules/Gemini) → ASL gloss (green) → tokenized gloss (green sign / amber
+spell) → note; plus a large amber letter cue bottom-right.
+
+**Prompt written:** `prompt-b12.txt` (owner voice, paste into CLAD). Scope: fix the
+panel (flat dark translucent, properly sized — no sphere blob), reproduce the web
+order, wire mic + input+sign + three mode buttons (note: `gemini` is not wired in the
+Lens core — `glosser.glossGemini` throws and downgrades to rules, and `resolveText`
+does not yet call `toGloss`; delegate must wire what's real and note gaps), add the
+amber letter cue from `getCurrentLabel()`, fold in B11 vocab buttons + B8 share, keep
+verified core untouched.
+
+**Success criteria (delegate must report each):** flat glass panel (no blob) sized to
+content; web order reproduced; letter cue renders + updates; mic/input/sign/modes/
+vocab/share all function; zero TS errors; no new runtime exceptions.
+
+**Gate:** PENDING — awaiting delegate report with diffs, panel implementation, wired
+vs. gapped modes, HUD capture, and compile output.
+
+## TTS finding (no round — platform does not support it)
+
+**Trigger:** Owner saw a login prompt for "text to speech" and asked whether TTS could
+be used to add a "speak while signing" mode.
+
+**Finding (from `Support/StudioLib.d.ts`):** Spectacles has no supported text-to-speech.
+`TextToSpeechModule` is marked `@deprecated Since Lens Scripting Version 348` —
+"VoiceML capabilities are no longer supported. For Spectacles see options on
+ASRModule." The Spectacles `AsrModule` is speech-to-text only (`startTranscribing` /
+`stopTranscribing`), with no reverse text→audio synthesis. The login prompt is the
+legacy VoiceML TTS, unavailable on the SPECS target.
+
+**Decision:** No round. Speak-while-signing is not buildable on Spectacles. Scope
+stands: text→sign (works now), speech→sign (device + login + mic). TTS is dropped.
+
+## Vision — post-submission product roadmap (recorded, not this deadline)
+
+**Trigger:** Owner shared a long-term product vision for SignSpace. Decision: document
+it as a roadmap, then refocus on the submission.
+
+**Recorded:** `VISION.md` in the `signspace` product repo. Highlights:
+
+- **North star:** speak or type → a spatial hand signs ASL instantly; long-term a
+  companion that adds an ASL signing avatar to any spoken/video content (viewers,
+  creators, classrooms, broadcasts).
+- **Tier 1 (nearest):** Blender cartoon/emoji character (deferred), selectable built-in
+  AR backgrounds (virtual city/billboard/studio + real passthrough), in-app share
+  (capture + gloss export, Round B8), then on-device push-to-Snapchat/Drive.
+- **Tier 2 (product expansion):** ASL avatar over existing video/audio — corner-of-
+  screen translation for YouTube/creators. New pieces: rigged character, audio→gloss
+  transcript layer, video compositing. Not Spectacles-specific.
+- **Tier 3 (hardest):** real-time live translation (news, presidential/UN, classrooms,
+  ASL tutors) — same architecture, streaming.
+- **Technical note:** real passthrough background already works on device; virtual
+  environment swap is a separate camera/rendering path needing 3D content. Tier 2/3
+  are a different delivery surface than the Spectacles Lens.
+
+## Round B10 — Selectable virtual environment background (delegate prompt written)
+
+**Trigger:** Owner wants a virtual environment option for the demo (city/billboard/
+studio) behind the hand + HUD, and correctly expects Lens Studio's plug-and-play
+environment features (built-in skybox / Asset Library environment) rather than a
+hand-built scene. This is a near-term demo add, separate from the long-tier vision.
+
+**Product framing (owner):** The Lens has two deliberate modes —
+- **Overlay mode (default):** the signing hand overlays whatever the user is watching
+  or listening to (real surroundings, video, lecture, conversation) and signs the ASL
+  translation of what is being said — the communication-barrier companion.
+- **Virtual Backdrop mode:** switch to a clean virtual environment (city/billboard/
+  studio) to create a signed message to share — with a friend, or to reach someone
+  who communicates differently.
+B10 delivers the Virtual Backdrop mode's environment + selector; B8 delivers the
+share (capture + gloss) for the created message. Captured in `VISION.md`.
+
+**Prompt written:** `prompt-b10.txt` (owner voice, paste into CLAD). Scope:
+1. Add at least one selectable virtual environment background via the plug-and-play
+   path (built-in / Asset Library), not hand-built geometry.
+2. Make it selectable (HUD toggle/button or inspector) to switch real passthrough
+   vs. virtual environment.
+3. Keep hand + HUD rendering correctly on the virtual background; resolver / SIK /
+   typed-input loop untouched.
+
+**Success criteria (delegate must report each):** a virtual environment renders in
+Preview (asset + source reported); user can switch real↔virtual (control described);
+hand + HUD render correctly; typed-input loop still works; zero TS errors; no new
+runtime exceptions.
+
+**Gate:** PENDING — awaiting delegate report with environment asset + source, diffs,
+switch-control description, Preview capture, and compile output.
+
+**Open visual note:** Owner reports a brown 3D object at the top of the screen in
+Preview. Plausible cause: the HUD background panel is built from the hand's scaled
+sphere mesh (30x22x1 cm, warm `(1.0,0.9,0.72)`) as a workaround because the UIKit
+`RoundedRectangle` did not render at runtime (B5). Ask the delegate to identify it,
+confirm/correct the hypothesis, and fix — either repair the RoundedRectangle path or
+replace the panel with a proper UI Kit shape. Fold into the next round's report.
+
 ---
 
 _(append rounds below as the build progresses)_

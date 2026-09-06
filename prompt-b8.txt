@@ -1,0 +1,60 @@
+# Round B8 — Add Share: in-app capture + gloss export
+
+Owner voice. Run this in CLAD, then report back with evidence.
+
+## Context
+
+The Lens is verified end to end: wire/bead hand, SIK interaction layer, HUD, and the
+typed-input → gloss → sign loop all pass in Desktop Preview. The one feature missing
+for the "Create" theme is a way to share what the user just signed. I want a Share
+button in the HUD that, when triggered, captures the signed hand and exposes the
+gloss so it can be shared.
+
+Scope decided: this is an **in-app capture + gloss export** — a Share button that
+takes a screenshot of the signed hand and makes the gloss text available. It must
+not depend on an OS share-sheet, Snapchat, or Drive. It must be verifiable in
+Desktop Preview, and the same code path must run on the Spectacles device.
+
+## What I want
+
+Add to `Assets/Scripts/SignSpaceHUD.ts` (or a small companion script):
+
+1. **A Share button** in the HUD, built with the same UI Kit pattern as the mic
+   button (theme SnapOS3, secondary style, round), positioned beside the existing
+   controls. Label it "SHARE". It must be an interactable that triggers on tap/up.
+
+2. **On trigger, capture the signed hand.** Use the correct Lens Studio screenshot /
+   frame-readback API (the delegate must pick the authoritative one for this LS
+   version — e.g. a camera render-target readback or the screen-capture API) to
+   produce a still image of the hand mid-sign. In Desktop Preview, confirm the
+   capture actually produces a saved image file (like the `round-b*` preview
+   captures do) and report its path.
+
+3. **Expose the gloss for sharing.** The Share action must emit the current gloss
+   string (the `HELLO* ZEBRA+`-style line from `getGloss()`). Surface it in the
+   Logger (`[SignSpaceHUD] SHARE gloss: <...>`) and, if there is a clean way to make
+   it available for copy/share in this runtime, do that too. At minimum the Logger
+   line plus the captured image are required.
+
+4. **Keep the verified core untouched.** Do not change the wire/bead hand, the
+   resolver/vocabulary, the SIK prefab, or the existing typed-input loop. Only add
+   the share UI + capture + gloss emission.
+
+## Success criteria (report each)
+
+- Share button renders in the HUD and is an interactable (registers like `SignInput`
+  and `MicButton` do).
+- Pressing Share produces a captured image of the signed hand in Desktop Preview
+  (report the saved file path and confirm it is non-empty / valid).
+- The gloss string is emitted on Share (report the exact `SHARE gloss:` Logger line).
+- The existing typed-input loop still works after the change (retest with a phrase).
+- Zero TypeScript errors; no new runtime exceptions (list any warnings).
+
+## Report back
+
+- Literal file paths changed and the actual diffs.
+- The capture API you chose and why it is the correct one for this LS version, plus
+  the saved image path.
+- The exact Logger output: the `SHARE gloss:` line and the confirm of the capture.
+- A screenshot or capture path of the HUD showing the new Share button.
+- Compile/verify command run and its output.
