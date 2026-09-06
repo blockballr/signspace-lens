@@ -1,0 +1,65 @@
+# Round B6b — Revert hand to wire/bead skeleton (VERBATIM COPY)
+
+Owner voice. Run this in CLAD, then report back with evidence.
+
+## Context
+
+The hand currently does not look the way I want. Do NOT re-derive or "improve" the
+rig. I am giving you the EXACT target file contents. Overwrite the two files with
+the exact text below, byte for byte. Do not paraphrase, reformat, or "fix" anything.
+
+Two reference files also exist on disk you can copy from instead of typing:
+- `ref-b6-handrig-target.ts` (exact target for `Assets/Scripts/HandRig.ts`)
+- `ref-b6-signspacehand-target.ts` (exact target for `Assets/Scripts/SignSpaceHand.ts`)
+
+## What I want
+
+1. **`Assets/Scripts/HandRig.ts`** — overwrite with the EXACT contents of
+   `ref-b6-handrig-target.ts`. This is the wire/bead skeleton: 21 joint spheres +
+   15 thin segment cylinders + palm volume, segments anchored at joint A oriented
+   toward B, unit cylinder spanning z in [-1, 0], `jointRadius` in options,
+   `getSphereMesh()` present.
+2. **`Assets/Scripts/SignSpaceHand.ts`** — overwrite with the EXACT contents of
+   `ref-b6-signspacehand-target.ts`. Wire/bead driver: `jointRadius: 0.045` on both
+   rigs, holographic cream tint clone (baseColor only — NO blendMode forcing),
+   `handScale` default 12, HUD getters (`getCurrentLabel`, `getGloss`,
+   `getHandMaterial`, `getSphereMesh`) present.
+3. **`Assets/Scene.scene`** — set the `SignSpaceHand` component's `handScale` input
+   to `12.0`.
+4. **Do not touch** anything else: SIK prefab, `SignSpaceHUD.ts`, resolver,
+   vocabulary, materials, other scene objects.
+
+## The exact target files are below. Copy them VERBATIM.
+
+(They also exist as `ref-b6-handrig-target.ts` and
+`ref-b6-signspacehand-target.ts` at the project root — you may copy from those files
+instead of reproducing the text. Prefer copying the files.)
+
+[EXACT FILE 1 — Assets/Scripts/HandRig.ts]
+See `ref-b6-handrig-target.ts`. Copy its full text into `Assets/Scripts/HandRig.ts`,
+replacing the entire file.
+
+[EXACT FILE 2 — Assets/Scripts/SignSpaceHand.ts]
+See `ref-b6-signspacehand-target.ts`. Copy its full text into
+`Assets/Scripts/SignSpaceHand.ts`, replacing the entire file.
+
+## Success criteria (report each)
+
+- `Assets/Scripts/HandRig.ts` content is byte-identical to
+  `ref-b6-handrig-target.ts` (run a diff and paste the output — it must be empty).
+- `Assets/Scripts/SignSpaceHand.ts` content is byte-identical to
+  `ref-b6-signspacehand-target.ts` (run a diff and paste the output — it must be
+  empty).
+- Scene `SignSpaceHand.handScale` = 12.0.
+- Compile gate: zero TypeScript errors.
+- Logger shows the wire rig building: `sphere ok`, `segment ok` per hand, then
+  `gloss: HELLO*`, `clip 'utterance' frames=24`.
+- No new runtime exceptions (list any warnings).
+
+## Report back
+
+- Paste the two `diff` outputs (must be empty) or confirm you copied from the ref
+  files.
+- The exact Logger output (mesh stats + gloss line).
+- A screenshot or capture path of the Preview showing the wire/bead hand.
+- Compile/verify command run and its output.
