@@ -27,6 +27,11 @@ export class SignSpaceHUD extends BaseScriptComponent {
   @hint("The SignSpaceHand scene object this HUD drives.")
   handObject: SceneObject;
 
+  @input
+  @label("Test Phrase (injected)")
+  @hint("If set, drives the same path the return-key handler uses (heard -> playText) so the input loop can be proven without a capturable keyboard in Desktop Preview.")
+  testPhrase: string = "";
+
   private hand: SignSpaceHand | null = null;
 
   private heardText: Text | null = null;
@@ -65,7 +70,13 @@ export class SignSpaceHUD extends BaseScriptComponent {
     this.buildBodyAnchor(parent);
 
     // Demo: play a phrase on start so the HUD pipeline is testable without a mic.
-    if (this.hand) this.hand.playText("HELLO");
+    // If a test phrase is injected (inspector), drive the SAME path the return-key
+    // handler uses (heard -> playText) to prove the full input loop.
+    if (this.testPhrase && this.testPhrase.trim().length > 0) {
+      this.heard(this.testPhrase.trim());
+    } else if (this.hand) {
+      this.hand.playText("HELLO");
+    }
   }
 
   private findHand(): SignSpaceHand | null {
@@ -230,18 +241,30 @@ export class SignSpaceHUD extends BaseScriptComponent {
   // ---- typed input + readouts --------------------------------------------
   private heard(text: string) {
     if (this.heardText) this.heardText.text = "heard: " + text;
+    print("[SignSpaceHUD] readout heard: " + text);
     if (this.hand) this.hand.playText(text);
   }
 
+  private lastReadout = "";
+
   private refreshReadouts() {
     if (!this.hand) return;
+    const parts: string[] = [];
     const label = this.hand.getCurrentLabel();
-    if (this.signCueText && label) this.signCueText.text = "sign: " + label;
-
+    if (this.signCueText && label) {
+      this.signCueText.text = "sign: " + label;
+      parts.push("sign: " + label);
+    }
     const gloss = this.hand.getGloss();
     if (this.glossText && gloss.length > 0) {
       const g = gloss.map((t) => t.token + (t.mode === "sign" ? "*" : "+")).join(" ");
       this.glossText.text = "gloss: " + g;
+      parts.push("gloss: " + g);
+    }
+    const line = parts.join(" | ");
+    if (line && line !== this.lastReadout) {
+      this.lastReadout = line;
+      print("[SignSpaceHUD] readouts " + line);
     }
   }
 }
