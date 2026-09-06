@@ -2503,6 +2503,7 @@
   ScriptInputs:
     "":
       handObject: !<reference.SceneObject> 584a6fb3-6448-4fea-a63d-55d0097cdf78
+      testPhrase: HELLO ZEBRA
   ScriptTypes:
     "":
       {}

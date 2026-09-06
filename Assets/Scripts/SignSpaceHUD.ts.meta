@@ -29,6 +29,7 @@
   PackagePolicy: CanBeUnpacked
   ScriptInputsHidden:
     handObject: false
+    testPhrase: false
   ScriptTypesHidden:
     {}
   ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
@@ -39,8 +40,10 @@
     []
   DefaultScriptInputs:
     - handObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      testPhrase: ""
   ScriptTypes:
     -
       {}
   InputLines:
     - '// @input SceneObject handObject {"label":"Hand Object", "hint":"The SignSpaceHand scene object this HUD drives."}'
+    - '// @input string testPhrase {"label":"Test Phrase (injected)", "hint":"If set, drives the same path the return-key handler uses (heard -> playText) so the input loop can be proven without a capturable keyboard in Desktop Preview."}'

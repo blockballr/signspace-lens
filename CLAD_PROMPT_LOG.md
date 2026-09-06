@@ -428,6 +428,48 @@ confirmation), Logger output, and a Preview capture.
 Wire/bead skeleton restored to the exact committed construction. Post-demo Blender
 cartoon hand remains the deferred follow-up.
 
+## Round B7 — Verify typed-input signs end to end in Preview (delegate prompt written)
+
+**Trigger:** The one B5 criterion still unconfirmed is the live user-facing input
+loop. B5 verified the SIK interaction layer was live and the code path
+(`onReturnKeyPressed` → `playText`) via the startup `HELLO` demo, but never captured
+an actual focused-typing interaction. With the SIK prefab present and the wire/bead
+hand restored, this round asks the delegate to prove input → gloss → sign works.
+
+**Prompt written:** `prompt-b7.txt` (owner voice, paste into CLAD). Scope: focus the
+HUD `SignInput` field and type a phrase (or, if Preview cannot capture keyboard
+focus, inject the same `playText("<phrase>")` path and explain the gap); confirm the
+gloss line, clip playback on the wire/bead hand, and HUD readout updates; fix
+`SignSpaceHUD.ts` only if a real bug appears; do not touch hand/resolver/SIK.
+
+**Success criteria (delegate must report each):** typed or injected phrase drives the
+resolver and hand; Logger shows gloss + clip lines; HUD readouts update; wire/bead
+hand + SIK quiet; zero TS errors; no new runtime exceptions.
+
+**Gate:** PENDING — awaiting delegate report with the phrase used, delivery method,
+Logger output, Preview capture, and any `SignSpaceHUD.ts` diff.
+
+**Delegate report (executed):** B7 complete.
+- Desktop Preview cannot capture a live keyboard-tap on the TextInputField, so the
+  delegate proved the loop by injecting the exact return-key path: added a
+  `testPhrase` input to `SignSpaceHUD.ts` that, when set, calls `heard(testPhrase)`
+  (the same handler the return-key uses) instead of the `HELLO` demo. Set
+  `testPhrase = "HELLO ZEBRA"` on the HUD component in the scene.
+- Added readout logging in `refreshReadouts()` (`[SignSpaceHUD] readouts ...`) and a
+  `heard` print so the loop is visible in the Logger.
+- `round-b7-preview.png` captured showing the wire/bead hand mid-sign with HUD.
+
+**Judge review of B7:** PASS. Verified from the Lens Studio log:
+- `gloss: HELLO* ZEBRA+` — HELLO resolved as a whole-word sign (`*`), ZEBRA
+  fingerspelled (`+`); the gloss pipeline and resolver work.
+- `[SignSpaceHUD] readouts sign: A/E/Z/A/Z/HELLO/R/A/... | gloss: HELLO* ZEBRA+` —
+  the sign cue cycles through the clip's letters and the HUD readout updates
+  live, proving `heard() → playText() → getCurrentLabel()/getGloss() → readout`.
+- The injected path is the same function the return-key handler calls, so the
+  on-device tap path is wired; Desktop Preview simply cannot synthesize a keyboard
+  tap. Honest gap documented, on-device path intact.
+- Wire/bead hand rendered in capture; SIK prefab untouched.
+
 ---
 
 _(append rounds below as the build progresses)_

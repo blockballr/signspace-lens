@@ -1,0 +1,56 @@
+# Round B7 — Verify typed-input signs end to end in Preview
+
+Owner voice. Run this in CLAD, then report back with evidence.
+
+## Context
+
+The wire/bead hand is now restored (Round B6b) and the SIK interaction layer is live
+(Round B5 added the `SpectaclesInteractionKit` prefab at scene root; interactables
+such as `SignInput`, `MicButton`, and the voice-input button register). The HUD
+builds at runtime with heard / sign cue / gloss readouts, a text input, and a mic
+button.
+
+What has NOT yet been proven is the user-facing input loop: in B5 the "click the
+field, type a phrase, see it sign" criterion was only partially verified — the SIK
+interaction layer was confirmed live and the code path (`onReturnKeyPressed` →
+`playText`) was checked via the startup `HELLO` demo, but an actual focused-typing
+interaction was not captured. I want that proven now, against the wire/bead hand.
+
+## What I want
+
+Prove the complete input → gloss → sign loop works interactively in the Desktop
+Preview:
+
+1. Confirm the HUD's `SignInput` TextInputField is focusable and receives the return
+   key: focus it, type a short phrase, and confirm the handler fires and drives
+   `playText`. Report the exact phrase you typed.
+2. Confirm the gloss pipeline resolves it: report the `gloss:` Logger line (e.g.
+   whole-word signs as `WORD*`, fingerspelled letters as `L+` tokens).
+3. Confirm the wire/bead hand plays the resulting clip (report the `clip` frames
+   line and the hand visibly signing in Preview).
+4. If the Desktop Preview cannot drive the text input directly (keyboard focus not
+   capturable in Preview), do the closest faithful thing:
+   - Drive the same path the return-key handler calls — `playText("<phrase>")` —
+     through a runtime script injection, AND
+   - Explain precisely why the live tap/keyboard path is not capturable in Preview
+     and what the on-device path will be, so I can judge the gap honestly.
+5. Confirm the HUD readouts update: after signing, `heard:` and/or `sign:` and
+   `gloss:` lines show the resolved phrase.
+6. Do not change the wire/bead hand, the resolver, or the SIK prefab. If you find a
+   real bug in `SignSpaceHUD.ts`, fix it and show the diff.
+
+## Success criteria (report each)
+
+- A typed (or injected) phrase drives the resolver and the hand signs it.
+- Logger shows the gloss line for the phrase and a clip-playing line.
+- HUD readouts update to reflect the phrase.
+- Wire/bead hand still renders; SIK prefab still present and quiet.
+- Zero TypeScript errors; no new runtime exceptions (list any warnings).
+
+## Report back
+
+- The exact phrase used and how input was delivered (real tap vs injected call).
+- Literal Logger output (gloss line, clip line, HUD readouts).
+- A screenshot or capture path of the Preview showing the hand mid-sign with the HUD.
+- Any diff to `SignSpaceHUD.ts`.
+- Compile/verify command run and its output.
