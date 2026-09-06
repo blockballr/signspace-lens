@@ -1,0 +1,47 @@
+# Round B11 — Clickable vocabulary buttons (preview + device input)
+
+Owner voice. Run this in CLAD, then report back with evidence.
+
+## Context
+
+Round B9 established that Desktop Preview cannot capture typed input (SPECS-27 sim
+renders no AR keyboard), while on-device typing works via the AR keyboard. Per the
+recommendation, the demoable input in Preview should be **clickable vocabulary
+buttons** — a grid of signable words that call `hand.playText(word)`, working
+identically in Preview and on device. Keep the on-device TextInputField and the
+inspector `testPhrase` as fallbacks.
+
+## What I want
+
+Add a grid of clickable vocabulary buttons to the HUD:
+
+1. **A set of word buttons.** Using the same UIKit Button pattern as the mic/share
+   buttons — `createComponent(Button.getTypeName())`, `setVariant({theme:"SnapOS3",
+   shape:"Capsule", style:"Secondary"})`, `onTriggerUp.add(() => this.hand.playText(word))`
+   — lay out a small grid of signable words from the existing VOCAB (e.g. HELLO,
+   THANK YOU, I LOVE YOU, MORE, WATER, SORRY, etc. — choose a short set that
+   resolves as whole-word signs, not just fingerspell).
+2. **Position the grid** in the HUD without overlapping the readouts, input field, or
+   mic/share buttons (introspect existing positions first, place below/alongside).
+3. **Keep the existing paths working:** the TextInputField (device) and the injected
+   `testPhrase` (preview fallback) must still drive the hand.
+4. **Keep the verified core untouched:** wire/bead hand, resolver/vocabulary, SIK
+   prefab. Only add the buttons + layout.
+
+## Success criteria (report each)
+
+- A grid of vocabulary buttons renders in the HUD and each registers as an
+  interactable.
+- Clicking a button in Desktop Preview drives the hand to sign that word (report
+  which word you clicked and the resulting `gloss:` line).
+- The typed-input path and `testPhrase` still work after the change.
+- No overlap / legibility issues with existing HUD elements.
+- Zero TypeScript errors; no new runtime exceptions (list any warnings).
+
+## Report back
+
+- Literal file paths changed and the actual diffs.
+- The words you chose and how they resolve (whole-word signs vs fingerspell).
+- The exact Logger output for a clicked button.
+- A screenshot or capture path of the HUD showing the button grid.
+- Compile/verify command run and its output.
