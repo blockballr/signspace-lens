@@ -4,6 +4,7 @@
     - !<own> 00000000-0000-0065-0000-000000000064
     - !<own> 0005641c-028d-459a-0000-000000014b4d
     - !<own> f5d74682-203a-4970-81ea-9fa7b88c96bb
+    - !<own> 584a6fb3-6448-4fea-a63d-55d0097cdf78
   layers: !<Layers/267ee9a7-aff2-4f9d-9a49-f71214747d03>
     userLayers:
       - id: 1
@@ -974,6 +975,21 @@
     - !<own> 46b79537-a269-46f1-9483-500d7a4170d6
   Components:
     []
+- !<SceneObject/584a6fb3-6448-4fea-a63d-55d0097cdf78>
+  PrefabRemaps:
+    []
+  Name: SignSpaceHand
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 796b828b-1b2a-411d-a0fa-0cd67682a913
 - !<SceneObject/58ef319f-850e-40dd-8295-e6dc36ab4854>
   PrefabRemaps:
     []
@@ -1304,6 +1320,24 @@
     []
   Components:
     - !<own> c8e031d3-a8a1-468a-a419-427f8556de4c
+- !<ScriptComponent/796b828b-1b2a-411d-a0fa-0cd67682a913>
+  PrefabRemaps:
+    []
+  Name: SignSpaceHand
+  Enabled: true
+  ScriptAsset: !<reference> dbdc726a-844a-4fe0-a0ed-76cfb895880a
+  ScriptInputsDefault:
+    spellText: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      material: !<reference.Material> 57f5ab49-8702-45d2-a1b7-052455397bfa
+      handScale: !<float> 20.000000
+      spellText: HELLO
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/7aa85bd8-d423-42cd-b190-473711e94929>
   PrefabRemaps:
     []
