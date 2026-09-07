@@ -30,3 +30,4 @@ voiceover/
 demo-voiceover.txt
 brand/*
 !brand/github-banner.png
+CLAD_PROMPT_LOG.md
