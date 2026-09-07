@@ -419,24 +419,64 @@ export class SignSpaceHUD extends BaseScriptComponent {
 
   // B15 Steps 2-4 create these objects; missing ones simply stay unbound for now.
   private resolveEditorReadouts() {
-    // One-off B15 debug: runtime ground truth on the editor-built panel.
-    const dbg = this.findObjectByName("PanelBg");
-    if (dbg) {
-      try {
-        const wp = dbg.getTransform().getWorldPosition();
-        const st = dbg.getComponent("Component.ScreenTransform") as ScreenTransform;
-        const anchors = st ? ("L" + st.anchors.left + " R" + st.anchors.right + " T" + st.anchors.top + " B" + st.anchors.bottom) : "no-ST";
-        print("[SignSpaceHUD] DBG PanelBg world=(" + wp.x.toFixed(1) + "," + wp.y.toFixed(1) + "," + wp.z.toFixed(1) + ") enabled=" + dbg.enabled + " " + anchors);
-      } catch (e) { print("[SignSpaceHUD] DBG err: " + String(e)); }
-    } else {
-      print("[SignSpaceHUD] DBG PanelBg not found at runtime");
-    }
-    // One-off B15 A/B probe: runtime-created screen-space quad (B14-style).
-    // Removed after diagnostics confirmed preview rendering (probe verified OK).
     this.heardText = this.bindText("HeardText", "heardText");
     this.aslGlossText = this.bindText("ASLGlossText", "aslGlossText");
     this.tokensText = this.bindText("TokensText", "tokensText");
     this.cueText = this.bindText("LetterCueText", "cueText");
+    // B15 Step 4: vocab grid as minimal runtime script (UIKit-free — the
+    // upgraded UIKit package's theme chain crashes at module load, so the
+    // grid uses plain Image + Text + InteractionComponent instead).
+    const panelObj = this.findObjectByName("HUDPanel");
+    if (panelObj) {
+      this.addVocabGridUIKitFree(panelObj);
+    } else {
+      print("[SignSpaceHUD] vocab grid skipped: HUDPanel not found");
+    }
+  }
+
+  // B15 Step 4. Tappable word buttons: 2 cols x 4 rows below the tokens line.
+  private addVocabGridUIKitFree(parent: SceneObject) {
+    const words = ["HELLO", "THANK YOU", "I LOVE YOU", "MORE", "WATER", "SORRY", "PLEASE", "YES"];
+    const rowsTop = [-0.20, -0.40, -0.60, -0.80];
+    const rowsBot = [-0.34, -0.54, -0.74, -0.94];
+    const colsL = [-0.95, 0.05];
+    const colsR = [-0.05, 0.95];
+    const btnColor = new vec4(0.102, 0.125, 0.188, 0.9); // #1a2030
+    let made = 0;
+    for (let i = 0; i < words.length; i++) {
+      const col = i % 2;
+      const r = Math.floor(i / 2);
+      try {
+        const obj = global.scene.createSceneObject("Vocab_" + words[i].replace(/\s+/g, "_"));
+        obj.setParent(parent);
+        const st = obj.createComponent("Component.ScreenTransform") as ScreenTransform;
+        st.anchors.left = colsL[col]; st.anchors.right = colsR[col];
+        st.anchors.top = rowsTop[r]; st.anchors.bottom = rowsBot[r];
+        const img = obj.createComponent("Component.Image") as Image;
+        const mat = this.hand ? (this.hand.getHandMaterial().clone() as Material) : null;
+        if (mat) {
+          mat.mainPass.blendMode = 1;
+          mat.mainPass.baseColor = btnColor;
+          img.mainMaterial = mat;
+        }
+        const lbl = obj.createComponent("Component.Text") as Text;
+        lbl.text = words[i];
+        lbl.size = 24;
+        lbl.textFill.color = COL_BODY;
+        lbl.horizontalOverflow = HorizontalOverflow.Overflow;
+        const inter = obj.createComponent("Component.InteractionComponent") as InteractionComponent;
+        inter.addMeshVisual(img);
+        const word = words[i];
+        inter.onTap.add(() => {
+          print("[SignSpaceHUD] VOCAB tap: " + word);
+          if (this.hand) this.hand.playText(word);
+        });
+        made++;
+      } catch (e) {
+        print("[SignSpaceHUD] vocab btn err (" + words[i] + "): " + String(e));
+      }
+    }
+    print("[SignSpaceHUD] vocab grid: " + made + "/8 buttons");
   }
 
   private buildBodyAnchor() {

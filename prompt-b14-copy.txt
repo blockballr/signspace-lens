@@ -1,0 +1,56 @@
+# Round B14 — HUD EXACT REPLICA: verbatim copy, compile fixes only
+
+Owner voice. Run this in CLAD, then report back with evidence.
+
+## Context
+
+Three HUD redesign attempts (B12, B13, and a first B14 pass) each failed because you
+re-derived the design. The new approach is the one that fixed the hand (B6b): the
+exact target code is provided. Your job is to COPY it verbatim, fix ONLY compile
+errors, and verify.
+
+## What I want
+
+1. **`Assets/Scripts/SignSpaceHUD.ts`** — overwrite the ENTIRE file with the exact
+   contents of `ref-b14-hud-target.ts` (project root). This is the web HandGloss
+   replica: one top-left screen-space panel (camera-anchored ScreenTransform chain),
+   web palette (#e6e9ef / #7c8394 / #9fb4ff / #9fe8b0 / #ffd27f / rgba(20,24,33,.72)),
+   web order (tag → title → description → Listen → input+Sign → status → heard →
+   gloss-engine modes → ASL gloss → tokens → vocab grid), and the ONLY off-panel
+   element: a large amber letter cue bottom-right.
+
+2. **Compile fixes ONLY.** If any API call in the target file does not compile in this
+   LS version, fix it with the minimal change that preserves the visual result
+   (e.g. a different property name for the same effect). Do NOT reposition elements,
+   change sizes, change colors, or change the hierarchy. If you believe a visual
+   change is genuinely required, STOP and report instead of changing it.
+
+3. **Screen hierarchy (critical — this is why previous attempts scattered):** the
+   target file attaches the HUD panel under the scene's Camera object and gives every
+   HUD node a ScreenTransform. `ScreenTransform.isInScreenHierarchy()` requires a
+   Camera ancestor + ScreenTransform on every object between. Do not break this chain.
+   If the Camera lookup in `findCameraObject()` does not find the camera, fix the
+   lookup (e.g. `global.scene.getRootObject(i).getComponent("Camera")`) — but keep
+   the panel camera-parented.
+
+4. **Verify and report evidence.**
+
+## Success criteria (report each)
+
+- `Assets/Scripts/SignSpaceHUD.ts` is byte-identical to `ref-b14-hud-target.ts`
+  EXCEPT compile fixes you made — list every deviation and its reason.
+- Preview shows: ONE panel top-left, nothing else on screen except the amber letter
+  cue bottom-right. Hand fully visible, never occluded.
+- Panel content order matches: tag → title → description → Listen → input+Sign →
+  status → heard → modes → ASL gloss → gloss tokens → vocab grid.
+- Clicking a vocab button signs the word (report the gloss line).
+- `testPhrase` injection still works.
+- Zero TypeScript errors; no new runtime exceptions (list any warnings).
+
+## Report back
+
+- The diff between `ref-b14-hud-target.ts` and the installed file (or "identical").
+- Every compile fix you made and why (or "none needed").
+- The Preview capture showing the panel + cue + visible hand mid-sign.
+- The Logger output for a vocab click.
+- Compile/verify command run and its output.

@@ -1,0 +1,70 @@
+# Round B14 — HUD layout: one panel, one side, hand never occluded
+
+Owner voice. Run this in CLAD, then report back with evidence.
+
+## Context
+
+The B13 result is rejected. In the Preview the HUD elements are scattered all over
+the screen — title/input top edge, mode buttons middle-left, readouts floating at
+random heights, vocab buttons spread across the lower half — and the signing hand is
+partially covered by HUD elements. That is unusable.
+
+Two hard rules for this rework:
+
+1. **One panel, one side.** All HUD content lives in a SINGLE panel occupying one
+   side of the screen (the top-left, exactly like the ported web version's
+   `index.html` panel: `left: 16px; top: 16px`). Nothing from the HUD may appear
+   anywhere else on screen except the single large letter cue, which sits in the
+   bottom-right corner (as in the web version's `.cue`).
+2. **The hand is never occluded.** The signing hand (world-space, at ~(0, -14, -45))
+   must be fully visible at all times. No HUD element may render over it. If the
+   panel is screen-space, it must be positioned/dimensioned so it does not overlap
+   the hand's screen region; verify by capture with the hand signing.
+
+## What I want
+
+1. **One screen-space panel, top-left.** Every readout and control inside it, laid
+   out vertically in the web order: title → description → mic → input+sign → status
+   → heard (blue) → gloss-engine modes (3 buttons, one row) → ASL gloss (green) →
+   tokenized gloss (green/amber) → note. Fixed panel width (~1/4 of screen), left
+   and top padding of 16px-equivalent. One column, consistent row spacing, labels
+   small/uppercase/muted, values colored. No element outside the panel bounds.
+2. **Vocab buttons inside the panel** (a compact grid at the panel's bottom), NOT
+   scattered across the screen. Same width as the panel, wrap to fit.
+3. **Letter cue** as the only element outside the panel: bottom-right, large amber,
+   driven by `getCurrentLabel()`.
+4. **Keep interactive controls tappable** (hand-pinch on device, click in Preview).
+   If screen-space buttons are not reliably interactable, put ONLY the readouts in
+   the screen-space panel and keep the buttons (mic, sign, share, vocab) in a compact
+   world-space cluster attached near the panel side — but still constrained to one
+   region, not scattered. State which elements are screen-space vs world-space and
+   why.
+5. **Verify non-occlusion.** With the hand signing (e.g. HELLO), capture the Preview
+   and confirm the hand is fully visible with no HUD element overlapping it.
+6. **Text must be legible — sized for AR, not for a monitor.** The previous HUD's
+   text was far too small. Minimum sizing:
+   - Title: largest text in the panel, roughly 2x the body size.
+   - Body values (heard, ASL gloss, tokens, status): ~1.5-2x the previous sizes —
+     readable at a glance from viewing distance.
+   - Labels (uppercase, muted): ~0.75x body, still legible.
+   - Vocab button labels: same as body values.
+   - Letter cue: very large — the dominant element in the bottom-right.
+   Err LARGER when unsure. A capture where any readout is squint-level small fails.
+7. **Keep everything working:** typed-input + `testPhrase` loop, gloss-mode buttons,
+   vocab buttons, share, ASR toggle, wire/bead hand, resolver/vocabulary, SIK prefab.
+
+## Success criteria (report each)
+
+- All HUD content is inside ONE panel on one side (top-left); the only off-panel
+  element is the bottom-right letter cue. No scattered elements anywhere.
+- The hand is fully visible while signing — no HUD overlap (capture proves it).
+- Vocab buttons are a compact grid inside/beside the panel, not spread across screen.
+- All controls still function (typed input, testPhrase, modes, vocab, share, ASR).
+- Zero TypeScript errors; no new runtime exceptions (list any warnings).
+
+## Report back
+
+- Literal file paths changed and the actual diffs.
+- Screen-space vs world-space breakdown per element and the occlusion strategy.
+- The Preview capture showing: panel on one side, hand fully visible mid-sign.
+- Compile/verify command run and its output.
