@@ -29,6 +29,7 @@
   PackagePolicy: CanBeUnpacked
   ScriptInputsHidden:
     handObject: false
+    sikHitPrefab: false
     testPhrase: false
     useEditorHUD: false
   ScriptTypesHidden:
@@ -43,6 +44,7 @@
     - handObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
       testPhrase: ""
       useEditorHUD: true
+      sikHitPrefab: !<reference.ObjectPrefab> 00000000-0000-0000-0000-000000000000
   ScriptTypes:
     -
       {}
@@ -50,3 +52,4 @@
     - '// @input SceneObject handObject {"label":"Hand Object"}'
     - '// @input string testPhrase {"label":"Test Phrase (injected)"}'
     - '// @input bool useEditorHUD = true {"label":"Use Editor HUD", "hint":"When ON, skip the runtime panel and bind readouts to editor-built scene objects (B15)."}'
+    - "// @input Asset.ObjectPrefab sikHitPrefab {\"label\":\"SIK Hit Prefab\", \"hint\":\"ObjectPrefab holding a SIK Interactable; instantiated per world button so the desktop preview's mouse can click them.\"}"
