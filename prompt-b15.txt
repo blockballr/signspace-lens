@@ -1,0 +1,80 @@
+# Round B15 — Editor-built simplified HUD, step-by-step with visual checks
+
+Owner voice. Run this in CLAD, then report back with evidence.
+
+## Context
+
+Four code-built HUD attempts have failed (B12, B13, two B14 passes). The runtime-built
+HUD scatters and neither of us can see the Preview (your image input is unavailable,
+mine too) — so blind runtime construction has to stop. The new approach: build the
+HUD as **editor scene objects** (created via your scene tools with exact inspector
+values, not generated at runtime by script), with **me checking the Preview
+visually after every couple of elements**. Small steps, visible confirmation, no
+flying blind.
+
+Also scope down: the full 10-row web panel is too much to nail blind. Build the
+**essentials only**: panel, title, heard, ASL gloss, tokens, letter cue, vocab
+buttons. Description, status, gloss-mode buttons, and share come back in a later
+round only after the core looks right.
+
+## Step 0 — Kill the old runtime panel (do this FIRST)
+
+The current `SignSpaceHUD.ts` builds a broken panel at runtime in `buildPanel()`.
+Add an inspector boolean `useEditorHUD` (default TRUE) to `SignSpaceHUD`; when true,
+`build()` must skip the entire runtime panel construction (no bg, no readouts, no
+buttons from script) but MUST still link the hand and keep `playText`,
+`getCurrentLabel`, `getGloss`, `getHandMaterial`, `getSphereMesh`, ASR, and
+`testPhrase` working. Runtime readout updates (`refreshReadouts`) must target the
+EDITOR-built text objects instead of script-created ones (resolve them by scene
+object name or wire them as script inputs). Report the diff.
+
+## Step 1 — Panel (editor objects)
+
+Create in the scene hierarchy, under the Camera object, a screen-space panel:
+- Flat dark glass background: color `rgba(20,24,33,0.72)` ≈ vec4(0.078, 0.094, 0.129,
+  0.72), subtle light border, slight rounded corners if cheap.
+- Anchored **top-left** (screen left edge + small padding, screen top edge + small
+  padding), fixed width ≈ 1/4 of the screen width, height content-driven.
+- Verify in Preview that it is a small flat rect in the top-left corner and nothing
+  else is on screen with it yet. STOP. Report the scene-object paths, anchor/offset
+  values, and a capture path. Wait for my visual confirmation before continuing.
+
+## Step 2 — Readouts (editor objects, inside the panel)
+
+Add, in order, as separate text objects inside the panel (top to bottom):
+1. Title "HandGloss" (near-white #e6e9ef, large, bold-ish).
+2. Heard value (blue #9fb4ff): driven live from the hand's heard text.
+3. ASL gloss (green #9fe8b0).
+4. Tokens line (green tokens for whole-word signs, amber #ffd27f for fingerspell).
+Consistent left padding, even row gaps, legible sizes (values ~2x what you'd use on
+a monitor — AR needs bigger; err larger). STOP. Report paths + values + capture.
+Wait for confirmation.
+
+## Step 3 — Letter cue (editor object)
+
+A separate large amber (#ffd27f) letter readout, bottom-right, driven by
+`getCurrentLabel()`. The only element allowed outside the panel.
+STOP. Report + capture. Wait for confirmation.
+
+## Step 4 — Vocab buttons (editor or minimal script, inside the panel)
+
+A compact grid at the panel bottom: HELLO, THANK YOU, I LOVE YOU, MORE, WATER,
+SORRY, PLEASE, YES. Each triggers `hand.playText(word)`. Must be tappable in
+Preview (click) and by hand-pinch on device. STOP. Report + capture. Wait for
+confirmation.
+
+## Rules for every step
+
+- No runtime-created UI except what the script already does for the hand and what
+  Step 0 explicitly keeps. If a compile fix is needed, make the minimal change and
+  report it — no redesign, no repositioning beyond the spec.
+- The signing hand must never be occluded: panel stays top-left at ~1/4 width, cue
+  bottom-right, hand center-frame.
+- After each step: report what you created (object paths), the exact anchor/offset
+  values, a capture path of the Preview, and STOP for my visual check. Do not
+  proceed to the next step without my go-ahead.
+
+## Report back (per step)
+
+What you built (paths + values), the capture path, Logger output if any behavior
+was exercised, compile result, and "waiting for your check" before the next step.
