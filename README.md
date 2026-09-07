@@ -2,80 +2,74 @@
 
 # SignSpace
 
-SignSpace is a Spectacles (SPECS) AR Lens for the CLAD Summer Hackathon, Week 4:
-Create. Speak or type, and a signing hand appears in front of you and plays American
-Sign Language. Known words are signed whole. Everything else is fingerspelled, letter
-by letter, so the Lens never fails to say something.
+## What it is
 
-It answers the Create theme directly: it lets anyone create signed messages without
-knowing ASL, for a Deaf friend, a classroom, or themselves.
+SignSpace is a Spectacles AR lens that turns speech or typed English into animated
+American Sign Language. A stylized wire-and-bead hand signs whole vocabulary words,
+and fingerspells anything unknown letter by letter, so it never fails to convey a
+message. The use case is making sign language visible and interactive for hearing
+audiences — demos, classrooms, events — and meeting deaf accessibility halfway.
 
-## What is built
+## Demo
 
-- A MeshBuilder wire and bead signing hand, driven by a 21 landmark model. Two hands,
-  per frame transform writes only, no allocation.
-- A ported sign language core: handshapes, poses, fingerspelling, a whole word sign
-  dictionary, and a three mode English to ASL gloss engine (passthrough, local rules,
-  Gemini with a rules fallback).
-- A world interface with heard text, the current sign cue, the ASL gloss line, a text
-  input, and a mic button, built as editor scene objects in screen space.
-- Speech input through the SPECS ASR module, degrading gracefully to typed input.
+`voiceover/demo-voiceover.mp3` is the narration track for the demo video.
 
-Every build round was run through CLAD, the closed loop of prompt, build, verify, and
-fix. The full record is in CLAD_PROMPT_LOG.md.
+## Key features
 
-## Quickstart
+- Live speech input through the Spectacles ASR module, plus typed input from the AR
+  keyboard or an injected test phrase.
+- Vocabulary signs — HELLO, THANK YOU, I LOVE YOU, MORE, WATER, SORRY, PLEASE, YES —
+  with automatic fingerspell fallback for anything unknown.
+- A letter cue showing the current letter during fingerspelling.
+- Floating world-space readouts: the heard text, the ASL gloss, and the token stream
+  where `*` marks a whole sign and `+` marks fingerspell — plus tappable vocabulary
+  and MIC / gloss-mode controls: Passthrough, Rules, Gemini.
+- A screen-space 2D panel on device.
+- Gloss modes where Gemini falls back to Rules until a RemoteServiceGateway token is
+  wired.
 
-Requirements: Lens Studio 5.23.2 or later, the SPECS target, and the packages in
-Packages/ (they are committed, so a fresh clone builds).
+## Architecture
 
-1. Clone this repository.
-2. Open signspace-lens.esproj in Lens Studio.
-3. Set the project target to Spectacles if it is not already.
-4. Open the Preview panel and select a SPECS 27 stereo device.
-5. Press play. The hand signs HELLO on start.
+```mermaid
+flowchart TD
+    A[Speech: Spectacles ASR] --> C
+    B[Typed text: AR keyboard or injected test phrase] --> C
+    C[Gloss engine: Passthrough / Rules / Gemini with Rules fallback] --> D
+    D[Resolver: word to vocabulary sign clip or fingerspell sequence] --> E
+    E[Wire and bead hand rig: procedural MeshBuilder hand, joint poses] --> F
+    F[Animation loop: per-letter frames, letter cue]
+    G[HUD layer] --> H[Screen-space 2D panel: device only]
+    G --> I[World-space caption, readouts and controls: all preview modes]
+    D --> G
+```
 
-To sign a different phrase, set the Test Phrase input on the SignSpaceHUD object in
-the Inspector, then reset the preview. The phrase goes through the same path the
-return key and the microphone use.
+## Honest preview limits
 
-## Preview notes
+- The SPECS 27 stereo desktop preview in Lens Studio 5.23.2 does not render
+  screen-space (ScreenTransform) UI. The 2D panel renders on-device and in
+  non-stereo previews.
+- World-space content — the hand, caption, readouts, controls, and vocab — renders
+  everywhere.
+- Spectacles Interaction Kit requires the Preview device set to SPECS 27, or
+  rendering fails.
 
-There are two honest preview limitations.
+## Repo layout
 
-The SPECS 27 stereo preview in current Lens Studio builds does not render screen
-space (ScreenTransform) UI layers. The interface renders correctly in the two
-dimensional device preview and in the runtime; see CLAD_PROMPT_LOG.md, Round B15, for
-the evidence. Speech recognition requires a physical Spectacles device with a
-microphone and internet. In desktop preview the ASR path starts and stops with error
-handling, but it cannot capture live speech. The typed path and the voice to resolver
-path are wired for device testing.
+```
+Assets/Scripts/        SignSpaceHand, SignSpaceHUD, HandRig
+Assets/SignLanguage/   glosser, resolve, signs, fingerspell, pose, handshape, math
+CLAD_PROMPT_LOG.md     the full build log
+voiceover/             narration script + generated mp3
+prompt-b*.txt          the per-round CLAD prompts
+ref-*.ts               verbatim-copy reference files
+```
 
-## How it works
+The `prompt-b*.txt` and `ref-*.ts` files are kept local: they are the per-round
+CLAD prompts and the reference files copied verbatim during each build round.
 
-The sign logic lives in Assets/SignLanguage as a pure TypeScript core with no Lens
-dependencies, ported from a browser prototype. handshape.ts maps finger curl values
-to 21 landmark positions. fingerspell.ts builds letter clips. signs.ts holds the
-whole word vocabulary and body locations. glosser.ts converts English to ASL gloss.
-resolve.ts turns free text into one playable clip with blended transitions.
+## How it uses CLAD
 
-Assets/Scripts builds the rendering. HandRig.ts constructs the hand from shared unit
-meshes and reposes it per frame. SignSpaceHand.ts resolves text and drives playback.
-SignSpaceHUD.ts links the interface to the hand and owns the ASR session.
-
-## Repository layout
-
-- Assets/SignLanguage: the ported sign core.
-- Assets/Scripts: the hand rig, the hand driver, and the interface.
-- Assets/SignSpace: the hand and panel materials.
-- CLAD_PROMPT_LOG.md: the complete CLAD build record, Phase A prototype through the
-  current round.
-- demo-voiceover.txt: the demo narration script.
-
-## Status
-
-All four build stages are complete and verified in preview: project setup, the
-MeshBuilder hand, the full vocabulary with fingerspell fallback, and the interface
-with ASR wiring. Known deferred work: a rigged cartoon hand, selectable virtual
-backdrops, and share to platform. See VISION.md in the companion repository,
-blockballr/asl-gesture-animation-agent, for the product roadmap.
+SignSpace was built round by round with CLAD prompts, one focused change per round.
+Each round ended with evidence checks in the Lens Studio preview — render, play,
+and confirm the expected behavior before moving on. The full prompt and
+verification history lives in `CLAD_PROMPT_LOG.md`.
