@@ -31,3 +31,16 @@ demo-voiceover.txt
 brand/*
 !brand/github-banner.png
 CLAD_PROMPT_LOG.md
+
+# Delegate-era prompt logs moved out of the repo
+PromptLogs/
+
+# Local build artifacts (captures, demo cuts, reference dumps)
+b*-preview.png
+b1*.png
+round-*.png
+prompt-b*.txt
+ref-*.ts
+please-check.png
+*.mp4
+*.jpg

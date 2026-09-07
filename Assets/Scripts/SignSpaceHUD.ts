@@ -75,10 +75,15 @@ export class SignSpaceHUD extends BaseScriptComponent {
  @label("Test Phrase (injected)")
  testPhrase: string = "";
 
- @input
- @label("Use Editor HUD")
- @hint("When ON, skip the runtime panel and bind readouts to editor-built scene objects (B15).")
- useEditorHUD: boolean = true;
+  @input
+  @label("Use Editor HUD")
+  @hint("When ON, skip the runtime panel and bind readouts to editor-built scene objects (B15).")
+  useEditorHUD: boolean = true;
+
+  @input
+  @label("SIK Hit Prefab")
+  @hint("ObjectPrefab holding a SIK Interactable; instantiated per world button so the desktop preview's mouse can click them.")
+  sikHitPrefab: ObjectPrefab;
 
  private hand: SignSpaceHand | null = null;
  private heardText: Text | null = null;
@@ -590,6 +595,67 @@ export class SignSpaceHUD extends BaseScriptComponent {
  return t;
  }
 
+ // Tappable world button. Without the SIK prefab: ghost sphere +
+ // InteractionComponent (device taps). With it: an invisible Interactable
+ // collider sized to the label, so the desktop preview's mouse can click it
+ // and nothing is left for the signing hand to intersect.
+ private mkWorldTap(name: string, content: string, x: number, y: number, size: number, col: vec4, onTap: () => void, sikHitName?: string) {
+ const camObj = this.findCameraObject();
+ if (!camObj) return;
+ const label = this.mkWorldText(name, content, x, y, size, col);
+ const hit = global.scene.createSceneObject(sikHitName || ("Hit_" + name));
+ hit.setParent(camObj);
+ hit.getTransform().setLocalPosition(new vec3(x, y, -45));
+ hit.getTransform().setLocalScale(new vec3(1, 1, 1));
+ const hasPrefab = !!this.sikHitPrefab;
+ if (!hasPrefab) {
+ // Legacy path (no SIK prefab): ghost visual + InteractionComponent tap.
+ const hv = hit.createComponent("Component.RenderMeshVisual") as RenderMeshVisual;
+ hv.mesh = this.hand ? this.hand.getSphereMesh() : null;
+ const srcMat = this.hand ? (this.hand.getHandMaterial().clone() as Material) : null;
+ if (srcMat) {
+ srcMat.mainPass.blendMode = 1;
+ srcMat.mainPass.baseColor = new vec4(0.3, 0.5, 1, 0.06);
+ hv.mainMaterial = srcMat;
+ }
+ hit.getTransform().setLocalScale(new vec3(4, 4, 4));
+ try {
+ const col = hit.createComponent("Component.ColliderComponent") as ColliderComponent;
+ const sphere = Shape.createSphereShape();
+ sphere.radius = 2;
+ col.shape = sphere;
+ } catch (e) { print("[SignSpaceHUD] collider err: " + String(e)); }
+ const inter = hit.createComponent("Component.InteractionComponent") as InteractionComponent;
+ inter.addMeshVisual(hv);
+ inter.onTap.add(onTap);
+ return;
+ }
+ // SIK path: invisible collider only. No ghost visual -> nothing for the
+ // signing hand to intersect. Collider sized to the label (~8.4 x 2 x 2.4 cm).
+ try {
+ const inst = this.sikHitPrefab.instantiate(hit);
+ inst.getTransform().setWorldPosition(hit.getTransform().getWorldPosition());
+ inst.getTransform().setLocalScale(new vec3(1.4, 0.33, 0.4));
+ let wired = false;
+ const icols = inst.getComponents("Component.ColliderComponent") as ColliderComponent[];
+ const comps = inst.getComponents("ScriptComponent") as any[];
+ for (const c of comps) {
+ if (c.onTriggerStart) {
+ c.colliders = icols;
+ c.enabled = false;
+ c.enabled = true; // re-fire OnEnableEvent -> enableColliders(true)
+ c.onTriggerStart.add(onTap);
+ try {
+ c.onTriggerEnd.add(() => print("[SignSpaceHUD] SIK triggerEnd " + name));
+ c.onHoverEnter.add(() => print("[SignSpaceHUD] SIK hoverEnter " + name));
+ } catch (e) { /* optional events */ }
+ wired = true;
+ }
+ }
+ print("[SignSpaceHUD] SIK instantiated+wired " + name + ": " + wired + " cols=" + icols.length);
+ } catch (e) { print("[SignSpaceHUD] SIK inst err (" + name + "): " + String(e)); }
+ }
+
  private addWorldPanel() {
  try {
  if (!this.findCameraObject()) return;
@@ -603,24 +669,24 @@ export class SignSpaceHUD extends BaseScriptComponent {
  }
  }
 
- // B15e: tappable world vocab words (2 rows x 4),UIKit-free.
+ // B15e: tappable world vocab words (2 cols x 5 rows, left-aligned so labels
+ // never overlap), UIKit-free. Each word gets an invisible SIK Interactable
+ // collider sized to its label, so the desktop preview's mouse can click it.
  private addWorldVocab() {
  try {
  if (!this.findCameraObject()) return;
- const words = ["HELLO", "MORE", "WATER", "YES", "THANK YOU", "I LOVE YOU", "SORRY", "PLEASE"];
- const xs = [-12.5, -5, 3, 11];
- const ys = [-5.5, -7.5];
+ const words = ["THANK YOU", "HELLO", "I LOVE YOU", "MORE", "WATER", "YES", "PLEASE", "SORRY", "ZEBRA"];
+ const xs = [2, 10.5, 2, 10.5, 2, 10.5, 2, 10.5, 10.5];
+ const ys = [-4.5, -4.5, -6.7, -6.7, -8.9, -8.9, -11.1, -11.1, -13.3];
  for (let i = 0; i < words.length; i++) {
  const w = words[i];
- const t = this.mkWorldText("WVocab_" + w.replace(/\s+/g, "_"), w, xs[i % 4], ys[Math.floor(i / 4)], 11, COL_BODY);
- const inter = t.getSceneObject().createComponent("Component.InteractionComponent") as InteractionComponent;
- inter.addMeshVisual(t);
- inter.onTap.add(() => {
+ const sikHitName = "SikHit_" + i + "_" + w.replace(/\s+/g, "_");
+ this.mkWorldTap("WVocab_" + w.replace(/\s+/g, "_"), w, xs[i], ys[i], 8, COL_BODY, () => {
  print("[SignSpaceHUD] world VOCAB tap: " + w);
  if (this.hand) this.hand.playText(w);
- });
+ }, sikHitName);
  }
- print("[SignSpaceHUD] world vocab: 8 words");
+ print("[SignSpaceHUD] world vocab: 9 words");
  } catch (e) {
  print("[SignSpaceHUD] world vocab err: " + String(e));
  }
@@ -636,28 +702,28 @@ export class SignSpaceHUD extends BaseScriptComponent {
  const obj = global.scene.createSceneObject(name);
  obj.setParent(camObj);
  obj.getTransform().setLocalPosition(new vec3(x, y, -45));
- const t = obj.createComponent("Component.Text") as Text;
- t.text = content;
- t.size = 14;
- t.textFill.color = col;
- try { t.horizontalOverflow = HorizontalOverflow.Overflow; } catch (e) { /* noop */ }
- const inter = obj.createComponent("Component.InteractionComponent") as InteractionComponent;
- inter.addMeshVisual(t);
- inter.onTap.add(onTap);
- };
- mkBtn("WMic", "[ MIC ]", -14, -10, COL_HEARD, () => {
- print("[SignSpaceHUD] world MIC tap");
- this.toggleASR();
- });
- mkBtn("WModeP", "PASSTHROUGH", -7.5, -10, COL_BODY, () => {
- this.glossMode = "passthrough";
- print("[SignSpaceHUD] gloss mode: passthrough");
- });
- mkBtn("WModeR", "RULES", 2.5, -10, COL_BODY, () => {
- this.glossMode = "rules";
- print("[SignSpaceHUD] gloss mode: rules");
- });
- mkBtn("WModeG", "GEMINI", 8.5, -10, COL_MUTED2, () => {
+  const t = obj.createComponent("Component.Text") as Text;
+  t.text = content;
+  t.size = 8;
+  t.textFill.color = col;
+  try { t.horizontalOverflow = HorizontalOverflow.Overflow; } catch (e) { /* noop */ }
+  const inter = obj.createComponent("Component.InteractionComponent") as InteractionComponent;
+  inter.addMeshVisual(t);
+  inter.onTap.add(onTap);
+  };
+  mkBtn("WMic", "MIC", 2, -15.5, COL_HEARD, () => {
+  print("[SignSpaceHUD] world MIC tap");
+  this.toggleASR();
+  });
+  mkBtn("WModeP", "PASS", 5, -15.5, COL_BODY, () => {
+  this.glossMode = "passthrough";
+  print("[SignSpaceHUD] gloss mode: passthrough");
+  });
+  mkBtn("WModeR", "RULES", 8.5, -15.5, COL_BODY, () => {
+  this.glossMode = "rules";
+  print("[SignSpaceHUD] gloss mode: rules");
+  });
+  mkBtn("WModeG", "GEMINI", 12, -15.5, COL_MUTED2, () => {
  this.glossMode = "gemini";
  print("[SignSpaceHUD] gloss mode: gemini (falls back to rules until RSG is wired)");
  });

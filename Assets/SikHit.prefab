@@ -1,0 +1,81 @@
+- !<ObjectPrefab/7f6d8b6a-966b-4ace-836e-ba4e4098b9f2>
+  PackagePath: ""
+  objects:
+    - !<own> a04e53be-5db7-41f0-b28e-9b9be6f43363
+  LazyLoading: false
+  RetainAssets: true
+  PreviewEnvironment: !<reference> 00000000-0000-0000-0000-000000000000
+- !<ColliderComponent/1d1cbd8f-c371-484b-b06e-5d69a85fb80a>
+  PrefabRemaps:
+    []
+  Name: Physics Collider
+  Enabled: true
+  Shape: !<Sphere>
+    FitVisual: true
+    Radius: 6.000000
+  Matter: !<reference> 00000000-0000-0000-0000-000000000000
+  Filter: !<reference> 00000000-0000-0000-0000-000000000000
+  OverlapFilter: !<reference> 00000000-0000-0000-0000-000000000000
+  WorldSettings: !<reference> 00000000-0000-0000-0000-000000000000
+  EnableSmoothing: false
+  PositionTension: 30.000000
+  RotationTension: 30.000000
+  ForceCompound: false
+  Intangible: false
+  ShowCollider: false
+- !<SceneObject/a04e53be-5db7-41f0-b28e-9b9be6f43363>
+  PrefabRemaps:
+    - 1d1cbd8f-c371-484b-b06e-5d69a85fb80a: 1d1cbd8f-c371-484b-4f91-a29657a047f5
+    - a04e53be-5db7-41f0-b28e-9b9be6f43363: a04e53be-5db7-41f0-4d71-6464190bcc9c
+    - a5ddf15f-278c-48d2-b34c-065295cc5e56: a5ddf15f-278c-48d2-4cb3-f9ad6a33a1a9
+  Name: SikHit
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: -5.000000, y: -5.500000, z: -45.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> a5ddf15f-278c-48d2-b34c-065295cc5e56
+    - !<own> 1d1cbd8f-c371-484b-b06e-5d69a85fb80a
+- !<ScriptComponent/a5ddf15f-278c-48d2-b34c-065295cc5e56>
+  PrefabRemaps:
+    []
+  Name: Interactable
+  Enabled: true
+  ScriptAsset: !<reference> 652e631a-22d0-4941-9f74-2943df59f34c
+  ScriptInputsDefault:
+    targetingMode: true
+    targetingVisual: true
+    ignoreInteractionPlane: true
+    keepHoverOnTrigger: true
+    enableInstantDrag: true
+    isScrollable: true
+    allowMultipleInteractors: true
+    enablePokeDirectionality: true
+    acceptableXDirections: true
+    acceptableYDirections: true
+    acceptableZDirections: true
+    useFilteredPinch: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      targetingMode: !<float> 3.000000
+      targetingVisual: !<float> 1.000000
+      ignoreInteractionPlane: false
+      keepHoverOnTrigger: false
+      enableInstantDrag: false
+      isScrollable: false
+      allowMultipleInteractors: true
+      enablePokeDirectionality: false
+      acceptableXDirections: !<float> 0.000000
+      acceptableYDirections: !<float> 0.000000
+      acceptableZDirections: !<float> 1.000000
+      useFilteredPinch: false
+  ScriptTypes:
+    "":
+      {}
