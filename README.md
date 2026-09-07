@@ -1,3 +1,5 @@
+![SignSpace](brand/github-banner.png)
+
 # SignSpace
 
 SignSpace is a Spectacles (SPECS) AR Lens for the CLAD Summer Hackathon, Week 4:

@@ -24,3 +24,9 @@ Workspaces/**
 .codex/config.toml
 .claude/settings.local.json
 # END Lens Studio managed Agents-Docs block
+
+# Brand + voiceover stay local (banner is the only exception)
+voiceover/
+demo-voiceover.txt
+brand/*
+!brand/github-banner.png
