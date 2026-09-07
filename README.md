@@ -43,6 +43,26 @@ flowchart TD
     D --> G
 ```
 
+## How it should look
+
+**On device (and in non-stereo previews)** the 2D panel anchors to the top-left of
+your view: a dark translucent glass card about a quarter of the screen wide, with,
+top to bottom: the **HandGloss** title, a blue `heard: …` line (live speech or typed
+text), a green `ASL: …` gloss line, an amber `gloss: …` token line (`*` = whole
+sign, `+` = fingerspell), and a grid of tappable vocabulary buttons with an ENV
+toggle. A large amber letter cue sits at the bottom-right of the view during
+fingerspelling.
+
+**In every view** (including the desktop stereo preview) the hand floats at the
+center of your space, with a live gloss caption directly under it, the floating
+readouts (title, heard, ASL, tokens) to the left, tappable vocabulary words beneath
+them, and a `[ MIC ]  PASSTHROUGH  RULES  GEMINI` control row. `submission-demo.mp4`
+shows exactly this composition with the narration track.
+
+Because of the stereo-preview limitation below, reviewers should judge the panel
+itself on device (or a mobile preview) and the hand/caption/controls in the desktop
+preview.
+
 ## Honest preview limits
 
 - The SPECS 27 stereo desktop preview in Lens Studio 5.23.2 does not render
