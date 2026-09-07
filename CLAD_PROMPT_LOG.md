@@ -597,6 +597,148 @@ vocab/share all function; zero TS errors; no new runtime exceptions.
 **Gate:** PENDING — awaiting delegate report with diffs, panel implementation, wired
 vs. gapped modes, HUD capture, and compile output.
 
+## Round B12 gate — REJECTED
+
+**Judge review:** The delegate's B12 HUD is rejected. It reproduced the web *order*
+but not the web *quality*: every element is hand-positioned at a hardcoded `vec3`
+instead of using the UI Kit layout system (`Flexbox2D`/`Grid2D`/`Layout2D`), so rows
+collide and nothing aligns; `buildVocabButtons(root)` is called twice (duplicate
+buttons); all text readouts share a guessed 38x3 rect; and the panel is a fixed slab
+with scattered content. The web version's quality comes from flexbox layout + a tight
+content-sized panel, which the Lens UI Kit provides and the delegate did not use.
+
+## Round B13 — HUD rework: screen-space UI, match web reference (delegate prompt written)
+
+**Prompt written:** `prompt-b13.txt` (owner voice, paste into CLAD). Scope: rebuild
+the HUD as **screen-space UI** (`ScreenTransform` + `Component.Image`/`Component.Text`),
+not world-space — the web look is flat 2D, so the HUD must render flat on the camera.
+Fix the duplicate `buildVocabButtons` call, size the glass panel to content with
+padding, and reproduce the web hierarchy (title → description → mic → input+sign →
+status → heard (blue) → modes → ASL gloss (green) → tokenized gloss (green/amber) →
+note) plus the separate amber letter cue and the vocab grid, with all controls still
+functioning. Match the web palette (dark glass, muted labels, blue/green/amber values).
+
+**Interaction constraint (added):** screen-space UI displays on device but buttons
+tapped by hand-pinch rely on SIK world-space colliders. The delegate must verify the
+buttons stay tappable on Spectacles — if screen-space interactables are not reliably
+pinchable, keep interactive controls in world space (SIK colliders) and use
+screen-space only for readouts. Must not ship a pretty-but-untappable HUD.
+
+**Success criteria (delegate must report each):** screen-space UI (flat, no world-space
+vec3 placement); no duplicate vocab buttons; web order + hierarchy reproduced and
+aligned; content-sized glass panel; all controls work; zero TS errors; no new runtime
+exceptions.
+
+**Gate:** PENDING — awaiting delegate report with diffs, layout components used,
+HUD capture, duplicate-fix confirmation, and compile output.
+
+## Round B13 gate — REJECTED
+
+**Judge review:** B13's result scattered HUD elements across the whole screen (title/
+input top edge, mode buttons mid-left, readouts at random heights, vocab buttons
+across the lower half) and HUD elements occlude the signing hand. Screen-space and
+world-space elements were mixed with no unified frame. Unusable.
+
+## Round B14 — One panel, one side, hand never occluded (delegate prompt written)
+
+**Prompt written:** `prompt-b14.txt` (owner voice, paste into CLAD). Two hard rules:
+1. All HUD content in ONE screen-space panel, top-left (like the web `index.html`
+   panel: 16px inset), web order, fixed ~1/4 screen width, one column. The ONLY
+   off-panel element is the large amber letter cue, bottom-right.
+2. The signing hand must never be occluded by HUD elements; capture with the hand
+   mid-sign proves it. Vocab buttons become a compact grid inside/beside the panel —
+   not scattered. Interactive controls stay tappable (world-space cluster attached to
+   the panel side if screen-space buttons are not pinchable), with an explicit
+   screen-vs-world breakdown per element.
+
+**Success criteria (delegate must report each):** everything in one panel + the cue;
+hand fully visible mid-sign (capture proof); vocab grid contained; all controls work;
+zero TS errors; no new runtime exceptions.
+
+**Gate:** PENDING — awaiting delegate report with diffs, screen-vs-world breakdown,
+non-occlusion capture, and compile output.
+
+**Owner feedback (added to B14):** text elements are too small. B14 now requires AR-
+legible sizing — title ~2x body, body values ~1.5-2x previous, labels ~0.75x body,
+letter cue dominant. Err larger; squint-level text fails.
+
+**Strategy change (planner decision):** after three failed redesign rounds, the exact
+code is now written by the planner and copied verbatim by the delegate — the same
+pattern that fixed the hand (B6b). Key insight: the previous HUDs scattered because
+`ScreenTransform` anchoring silently failed — `isInScreenHierarchy()` requires a
+Camera ancestor + a ScreenTransform on EVERY object between Camera and element; the
+previous HUDs were children of a world-positioned root with no such chain.
+
+- `ref-b14-hud-target.ts` — complete web HandGloss replica written by the planner:
+  camera-parented screen-space panel (anchors: top-left, ~22% width), exact web
+  palette (#e6e9ef/#7c8394/#9fb4ff/#9fe8b0/#ffd27f/rgba(20,24,33,.72)), web order
+  (tag → title → description → Listen → input+Sign → status → heard → modes → ASL
+  gloss → tokens → vocab grid), letter cue as the only off-panel element
+  (bottom-right, amber, huge).
+- `prompt-b14-copy.txt` — delegate instruction: overwrite `SignSpaceHUD.ts` with the
+  target byte-for-byte; compile fixes ONLY (no visual changes); if a visual change
+  seems needed, stop and report.
+
+**Gate:** PENDING — awaiting delegate report with the diff vs. ref (or "identical"),
+list of compile fixes, Preview capture (panel + cue + visible hand), and compile
+output.
+
+## Round B14-copy gate — REJECTED
+
+**Judge review:** Copy attempt also failed: the HUD content collapsed into the center
+of the screen (giant overlapping cue + tiny piled text), panel missing. Screen-space
+anchoring failed again — the delegate and planner both lack image input, so every
+attempt is blind and unverifiable except by the owner after the fact. Root cause is
+architectural: blind **runtime** code-built UI cannot be iterated without eyes.
+
+## Round B15 — Editor-built simplified HUD, step-by-step (delegate prompt written)
+
+**Trigger:** Owner accepted the pivot. Four code-built HUD rounds failed. New
+approach: the delegate builds the HUD as **editor scene objects** (exact inspector
+values via scene tools), the owner checks the Preview visually after every couple of
+elements. Scope cut to the essentials: panel, title, heard, ASL gloss, tokens, letter
+cue, vocab buttons. Description/status/mode buttons/share deferred to a later round.
+
+**Prompt written:** `prompt-b15.txt` (owner voice, paste into CLAD). Steps:
+1. Kill the old runtime panel: add inspector `useEditorHUD` (default TRUE) to
+   `SignSpaceHUD`; when true skip all runtime panel construction but keep hand link,
+   playText/getters, ASR, testPhrase; retarget `refreshReadouts` at editor-built
+   text objects.
+2. Panel: flat dark glass `rgba(20,24,33,.72)` top-left ~1/4 width. STOP + capture.
+3. Readouts inside panel (title → heard (blue) → ASL gloss (green) → tokens
+   (green/amber)). STOP + capture.
+4. Letter cue: large amber bottom-right from `getCurrentLabel()`. STOP + capture.
+5. Vocab grid in panel bottom, tappable in Preview and by pinch on device. STOP +
+   capture.
+Panel never occludes the hand; hand center-frame; only the cue sits outside the panel.
+
+**Success criteria (per step):** objects created with paths + anchor/offset values;
+capture shows the step's result cleanly; behavior verified where exercised; compile
+clean. Owner confirms visually before the next step.
+
+**Gate:** PENDING — awaiting Step 0 + Step 1 report (diff, paths, values, capture).
+
+## Round B14 gate — REJECTED
+
+**Judge review:** The verbatim screen-space target still collapsed into the center:
+the `HELLO` cue was oversized and central, HUD text was tiny and overlapping, and
+the intended top-left panel did not materialize. The blind runtime screen-space
+approach is not reliable enough for the full HUD.
+
+## Round B15 — Editor-built HUD, incremental visual verification (delegate prompt written)
+
+**Prompt written:** `prompt-b15.txt` (owner voice, paste into CLAD). Strategy pivot:
+build the HUD as editor-authored objects under a valid Camera → ScreenTransform
+hierarchy, not runtime `vec3` placement; build only a compact top-left panel with
+title/heard/gloss first, then stop for owner visual approval. Add controls and cue in
+later gates only after the panel is visibly correct.
+
+**Success criteria (Gate 1):** compact flat top-left panel; aligned title/heard/gloss;
+hand unobstructed; old duplicate HUD disabled; no errors; delegate stops for visual
+approval instead of continuing blind.
+
+**Gate:** PENDING — awaiting Gate 1 capture and owner visual approval.
+
 ## TTS finding (no round — platform does not support it)
 
 **Trigger:** Owner saw a login prompt for "text to speech" and asked whether TTS could
@@ -677,6 +819,35 @@ replace the panel with a proper UI Kit shape. Fold into the next round's report.
 ---
 
 _(append rounds below as the build progresses)_
+
+---
+
+## Round B7 — Input → gloss → sign loop proven (delegate executed)
+
+**Delegate did:** Added an inspector `testPhrase` to `SignSpaceHUD.ts` that drives the **exact return-key path** (`heard()` → `playText()`), since Desktop Preview can't capture keystrokes. Injected `HELLO ZEBRA`.
+
+**Verified:** `readout heard: HELLO ZEBRA` → `gloss: HELLO* ZEBRA+` → `clip 117 frames` → letters cycle H-E-L-L-O then Z-E-B-R-A; HUD readouts update. Zero TS errors.
+
+## Round B9 — Desktop Preview keyboard research (delegate executed)
+
+**Verdict: NO** — SPECS-27 Desktop Preview renders no AR keyboard (`specs-keyboard` skill: "The AR Keyboard does **not** appear in Lens Studio Preview with SPECS 27 simulation"). On-device: `global.textInputSystem.requestKeyboard()` summons the AR keyboard and typing works. Recommendation: clickable vocabulary buttons (preview + device reliable).
+
+## Round B11 — Clickable vocabulary buttons (delegate executed)
+
+**Delegate did:** 2×4 grid (HELLO, THANK YOU, I LOVE YOU, MORE, WATER, SORRY, PLEASE, YES) of UIKit `Button`s calling `hand.playText(word)`; added an SIK `InteractionPlane`, then removed it after it caused direct-ray obstruction. Verified clicks: `VOCAB click: WATER/SORRY/PLEASE/HELLO` → `gloss: WORD*` → clip → readouts. **Fix:** rows were 1.5cm apart (collider overlap) → spaced 5cm; buttons 4.8×2.4.
+
+## Round B12 — HUD redesign to web version (delegate executed)
+
+**Delegate did:** Flat **rounded-quad glass panel** (dark translucent) replacing the sphere blob; web-order layout (title, description, mic, input+SIGN, status, heard-blue, Passthrough/Rules/Gemini mode buttons, ASL-green, tokens-amber, note, large amber letter cue); mode buttons wired via `toGloss`; folded in B11 vocab + B8 share. **Verified:** `readouts ASL: HELLO ZEBRA | tokens: HELLO* ZEBRA+`; mode buttons registered; zero TS errors. **Gap:** Gemini degrades to Rules (no RSG wired); token coloring is a single amber line with `*`/`+` markers.
+
+## Interim fixes (B11/B12, delegate)
+
+- **Button cross-triggering** (SORRY/PLEASE fired wrong word): row spacing 1.5cm → 5cm, buttons 4.8×2.4 → correct resolution.
+- **Hand dropped below view** on chest signs (PLEASE/SORRY): `HAND_POS` `(0,-14,-45)` → `(0,-4,-45)` → hand stays in view.
+- **SIGN (Enter) button** added beside the text field — reads field text, submits through gloss engine, clears. Field's built-in clear button noted.
+
+## Round B8 — Share (in progress)
+Share button + capture marker + `SHARE gloss:` emission in `SignSpaceHUD.ts` (round-trip: trigger → log line → editor screenshot). Capture verification outstanding; pending B10 (virtual environment background) next.
 
 ---
 

@@ -12,7 +12,8 @@ import type { GlossToken } from "../SignLanguage/resolve";
 
 // Hand placement (cm) relative to world origin. DeviceTracking World: camera looks
 // down -Z at start, so -Z is in front of the user, -Y is below eye line.
-const HAND_POS = new vec3(0, -14, -45);
+// Raised so chest-location signs (PLEASE/SORRY, dy -0.52) stay in view.
+const HAND_POS = new vec3(0, -4, -45);
 
 const LOG_EVERY_N_FRAMES = 12;
 
