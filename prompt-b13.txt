@@ -1,0 +1,87 @@
+# Round B13 — HUD rework: use the UI Kit layout system, match web reference
+
+Owner voice. Run this in CLAD, then report back with evidence.
+
+## Context
+
+The HUD you built is not acceptable. It does not look like the ported web version
+(`signspace/index.html`). The problems I can see in the current `SignSpaceHUD.ts`:
+
+1. You hand-positioned every element with a hardcoded `vec3` instead of using the UI
+   Kit layout system, so nothing aligns, wraps, or spaces correctly. The web version
+   is clean because it uses flexbox; the Lens equivalent is `Flexbox2D` / `Grid2D` /
+   `Layout2D` (in `SpectaclesUIKit.lspkg/Scripts/Components/Layout2D/`).
+2. `buildVocabButtons(root)` is called TWICE (lines 189 and 203) — duplicate vocab
+   buttons are created.
+3. Every text readout is forced to the same 38x3 rect and a guessed position, so rows
+   collide and are off-center.
+4. The panel has no proper content-driven sizing or padding; it is a fixed slab with
+   content scattered inside.
+
+## What I want — screen-space UI, matching the web reference
+
+**Use screen-space UI, not world-space.** The web version is a flat 2D panel; the
+current world-space HUD looks like floating 3D bits. Build the HUD as a 2D screen-space
+overlay using `ScreenTransform` + `Component.Image` + `Component.Text` (and the UI Kit
+screen-space variants where available), so it renders flat on the camera like the web
+panel — exact colors, exact positions, no perspective distortion.
+
+Rebuild the HUD as a screen-space panel:
+
+- Dark glass panel (rounded, translucent, subtle border), sized to its content with
+  internal padding (not a fixed oversized slab).
+- Small uppercase label, then value, grouped, in this vertical order:
+  - Title "HANDGLOSS" (bold, largest).
+  - Description line (muted, small): known words sign (green), others fingerspell (amber).
+  - Mic button row (a real button, labeled).
+  - Text input + Sign button side by side in one row.
+  - Status line (muted).
+  - "heard" label + heard value (blue, medium-bold).
+  - "gloss engine" label + three mode buttons (Passthrough / Rules / Gemini) in one row.
+  - "ASL gloss" line (green).
+  - Tokenized gloss line: green tokens for whole-word signs, amber for fingerspell.
+  - Note line (small, muted).
+- A large amber letter cue separate from the panel, bottom area, driven by
+  `getCurrentLabel()`.
+- Vocab buttons (B11) as a proper grid, below the panel content, not overlapping.
+- Share button (B8) placed cleanly in the panel (e.g. top-right corner or a labeled
+  row), not floating at a guessed position.
+- Consistent spacing, alignment, and typography across all elements.
+
+## Constraints
+
+- Use screen-space UI (`ScreenTransform` + `Component.Image`/`Component.Text`, or UI
+  Kit screen-space layout) for all positioning. Hardcoded world-space `vec3` placement
+  is not acceptable except for the separate letter cue if it must stay in world space
+  (prefer screen-space for it too).
+- **Interaction must still work on device.** The buttons (mic, sign, share, vocab,
+  mode) are tapped by hand-pinch via SIK interactables, which use world-space
+  colliders. Screen-space UI has no such world-space collider, so you MUST verify how
+  the buttons remain tappable on a Spectacles device. If screen-space interactables
+  are not reliably pinchable, keep the *interactive* controls in world space (SIK
+  colliders) and use screen-space only for the *readouts* (labels, values, gloss,
+  letter cue). Do not ship a pretty-but-untappable HUD. State explicitly which
+  elements are screen-space vs. world-space and why, with the interaction evidence.
+- Fix the duplicate `buildVocabButtons` call.
+- Keep the verified core untouched: wire/bead hand, resolver/vocabulary, SIK prefab,
+  typed-input + `testPhrase` loop, gloss-mode buttons, share, and vocab buttons all
+  still function.
+- Match the web color palette: dark glass `#0b0e14`-ish panel, muted grey labels,
+  blue heard, green ASL gloss, amber fingerspell/cue, subtle 1px border.
+
+## Success criteria (report each)
+
+- No hardcoded `vec3` element placement — all layout is via Flexbox2D/Grid2D/Layout2D.
+- No duplicate vocab buttons (call `buildVocabButtons` once).
+- The web order + hierarchy is reproduced, visually clean and aligned in Preview.
+- Panel is content-sized with padding, dark translucent glass, not a fixed slab.
+- Mic, input+sign, mode buttons, vocab buttons, share, and the letter cue all work.
+- Zero TypeScript errors; no new runtime exceptions (list any warnings).
+
+## Report back
+
+- Literal file paths changed and the actual diffs.
+- Which layout components you used and how the hierarchy is structured.
+- A screenshot or capture path of the reworked HUD in Preview.
+- Confirmation the duplicate-call bug is fixed.
+- Compile/verify command run and its output.
