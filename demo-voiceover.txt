@@ -1,0 +1,56 @@
+# SignSpace — CLAD Week 4 Demo Voiceover
+Target length: ~90 seconds. Each line is one narration beat with its timestamp
+window. Speak at a relaxed pace; pause briefly between beats. Square-bracket notes
+are what should be on screen — do not read them aloud.
+
+---
+
+[0:00–0:10 — SPECS 27 preview, hand at rest, HELLO begins signing]
+
+What if you could speak — and a hand in the air signed it back in American Sign
+Language? This is SignSpace.
+
+[0:10–0:25 — hand plays HELLO; Logger shows "gloss: HELLO*"]
+
+SignSpace turns English into ASL, live. Watch: it signs "hello" as a whole word —
+that's what the star means in the gloss line at the bottom.
+
+[0:25–0:45 — say "THANK YOU" — delegate fires it — hand signs, Logger shows
+"heard: THANK YOU" and "gloss: THANK YOU*"]
+
+It listens to speech, or typed text. "Thank you" is in its vocabulary, so it signs
+the whole word — not letter by letter.
+
+[0:45–1:00 — say "WATER" or any non-vocabulary word — Logger shows fingerspelled
+letters; hand fingerspells]
+
+Anything outside its vocabulary, it fingerspells — every letter, one at a time — so
+it never fails to say something.
+
+[1:00–1:15 — HUD still: b15-restart-mobile.png on screen]
+
+The interface — your heard text, the current sign, and the ASL gloss — floats beside
+you. This is the panel in our two-D preview; the desktop stereo preview has a known
+Snap regression that hides screen-space layers, but the panel renders here in 2D, and
+on the device.
+
+[1:15–1:30 — screen: GitHub repo + CLAD_PROMPT_LOG.md]
+
+And this entire Lens was built with CLAD — prompt, build, verify, repeat. Every round
+is logged in the prompt log, from the first hand rig to the final fix.
+
+[1:30–1:40 — back to the hand, wide shot]
+
+SignSpace. Speak, and be understood in sign.
+
+---
+
+## Recording notes
+
+- Total spoken word count is ~150; at a normal pace that lands between 80–95 seconds.
+- If a beat runs long, cut the 0:45 fingerspell demo to one word and trim the
+  1:15 repo segment to "Every round is logged — the repo and prompt log are linked
+  below."
+- Record with the Logger visible: the heard/gloss lines are the product's readouts.
+- Phrases to fire in order: HELLO (auto on start), THANK YOU, WATER (fingerspell).
+  The delegate drives these via MCP when you say them.
