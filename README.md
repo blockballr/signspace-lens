@@ -10,6 +10,10 @@ and fingerspells anything unknown letter by letter, so it never fails to convey 
 message. The use case is making sign language visible and interactive for hearing
 audiences — demos, classrooms, events — and meeting deaf accessibility halfway.
 
+**Live demo:** [handgloss.vercel.app](https://handgloss.vercel.app/)
+
+SignSpace is built on **HandGloss**, the speech-to-ASL translation engine that converts English text to ASL gloss and animates a 3D hand to sign it. This repo is the Spectacles AR lens version; the engine lives in [asl-gesture-animation-agent](https://github.com/blockballr/asl-gesture-animation-agent).
+
 ## Key features
 
 - Live speech input through the Spectacles ASR module, plus typed input from the AR
@@ -52,10 +56,7 @@ fingerspelling.
 **In every view** (including the desktop stereo preview) the hand floats at the
 center of your space, with a live gloss caption directly under it, the floating
 readouts (title, heard, ASL, tokens) to the left, tappable vocabulary words beneath
-them, and a `[ MIC ]  PASSTHROUGH  RULES  GEMINI` control row. `submission-demo.mp4`
-shows exactly this composition with the narration track.
-
-Because of the stereo-preview limitation below, reviewers should judge the panel
+them, and a `[ MIC ]  PASSTHROUGH  RULES  GEMINI` control row. `Because of the stereo-preview limitation below, reviewers should judge the panel
 itself on device (or a mobile preview) and the hand/caption/controls in the desktop
 preview.
 
@@ -75,7 +76,6 @@ preview.
 Assets/Scripts/        SignSpaceHand, SignSpaceHUD, HandRig
 Assets/SignLanguage/   glosser, resolve, signs, fingerspell, pose, handshape, math
 CLAD_PROMPT_LOG.md     the full build log
-voiceover/             narration script + generated mp3
 prompt-b*.txt          the per-round CLAD prompts
 ref-*.ts               verbatim-copy reference files
 ```
