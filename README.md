@@ -10,10 +10,6 @@ and fingerspells anything unknown letter by letter, so it never fails to convey 
 message. The use case is making sign language visible and interactive for hearing
 audiences — demos, classrooms, events — and meeting deaf accessibility halfway.
 
-## Demo
-
-`voiceover/demo-voiceover.mp3` is the narration track for the demo video.
-
 ## Key features
 
 - Live speech input through the Spectacles ASR module, plus typed input from the AR
