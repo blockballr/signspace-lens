@@ -11,9 +11,11 @@ message. The use case is making sign language visible and interactive for hearin
 audiences — demos, classrooms, events — and meeting deaf accessibility halfway.
 
 **Live demo:** [signspace.pages.dev](https://signspace.pages.dev/)
-**HandGloss engine:** [handgloss.vercel.app](https://handgloss.vercel.app/)
+
 
 SignSpace is built on **HandGloss**, the speech-to-ASL translation engine that converts English text to ASL gloss and animates a 3D hand to sign it. This repo is the Spectacles AR lens version; the engine lives in [asl-gesture-animation-agent](https://github.com/blockballr/asl-gesture-animation-agent).
+
+**HandGloss engine:** [handgloss.vercel.app](https://handgloss.vercel.app/)
 
 ## Key features
 
